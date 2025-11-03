@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Player — NETMIRROR</title>
+  <link rel="stylesheet" href="assets/player.css">
+  <script defer src="assets/player.js"></script>
+</head>
+<body>
+  <div class="player-container">
+    <video id="video" crossorigin="anonymous" playsinline>
+      <source src="videos/sample_720p.mp4" type="video/mp4" data-quality="720">
+      <source src="videos/sample_1080p.mp4" type="video/mp4" data-quality="1080">
+      <track id="vttTrack" label="English" kind="subtitles" srclang="en" src="subtitles/sample.srt" default>
+      Your browser does not support HTML5 video.
+    </video>
+
+    <div class="player-ui" id="playerUi">
+      <div class="topbar">
+        <div class="title" id="playerTitle">Sample Movie</div>
+        <button id="btnClose" class="icon-btn">✕</button>
+      </div>
+
+      <div class="center-controls" id="centerControls">
+        <button id="btnRew" class="big-btn">⟲ 10s</button>
+        <button id="btnPlay" class="big-play">▶</button>
+        <button id="btnFwd" class="big-btn">10s ⟳</button>
+      </div>
+
+      <div class="bottombar">
+        <div class="left">
+          <button id="btnPlaySmall" class="icon-btn">⏯</button>
+          <div class="time"><span id="curTime">00:00</span> / <span id="durTime">00:00</span></div>
+        </div>
+
+        <div class="seek-wrap">
+          <input id="seek" type="range" min="0" max="100" step="0.1" value="0">
+        </div>
+
+        <div class="right">
+          <select id="qualitySelect" class="select"> 
+            <option value="720">720p</option>
+            <option value="1080">1080p</option>
+          </select>
+
+          <select id="subsSelect" class="select">
+            <option value="off">Subs Off</option>
+            <option value="en" selected>English</option>
+          </select>
+
+          <select id="speedSelect" class="select">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+
+          <button id="btnFull" class="icon-btn">⛶</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

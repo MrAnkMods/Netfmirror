@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NETMIRROR — Watch</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script defer src="assets/movies.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <!-- SPLASH -->
+  <div id="splash">
+    <div class="splash-center">
+      <svg class="splash-logo" viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <rect width="108" height="108" fill="#0b0b0b"/>
+        <path id="N-left" d="M25 10h12l20 50h-12z" fill="#E50914"/>
+        <path id="N-mid"  d="M51 10h12v88h-12z" fill="#B0060F"/>
+        <path id="N-right" d="M25 10l38 88h12l-38-88z" fill="#E50914"/>
+      </svg>
+      <div class="splash-title">NETMIRROR</div>
+      <div class="splash-progress">
+        <div class="bar"><div class="bar-fill" id="splashBar"></div></div>
+        <div class="loading-text" id="splashText">Loading…</div>
+      </div>
+    </div>
+  </div>
+  <!-- /SPLASH -->
+
+  <header class="navbar">
+    <div class="brand">
+      <div class="logo-svg" aria-hidden>
+        <svg viewBox="0 0 108 108" width="36" height="36"><rect width="108" height="108" fill="#0b0b0b"/><path d="M25 10h12l20 50h-12z" fill="#E50914"/><path d="M51 10h12v88h-12z" fill="#B0060F"/><path d="M25 10l38 88h12l-38-88z" fill="#E50914"/></svg>
+      </div>
+      <div class="brand-text">NETMIRROR</div>
+    </div>
+
+    <nav class="navlinks">
+      <a href="#">Home</a>
+      <a href="#">Movies</a>
+      <a href="#">Series</a>
+    </nav>
+
+    <div class="actions">
+      <input id="searchInput" placeholder="Search" />
+      <button id="btnSearch">Search</button>
+    </div>
+  </header>
+
+  <main id="content" class="page-preload">
+    <!-- rows populated by assets/script.js from movies.js -->
+  </main>
+
+  <footer class="footer">
+    <div>© <span id="year"></span> NETMIRROR</div>
+  </footer>
+</body>
+</html>
