@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>NETMIRROR — Watch</title>
+  <title>NETMIRROR — Home</title>
   <link rel="stylesheet" href="style.css">
   <script defer src="movies.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body>
-  <!-- SPLASH -->
-  <div id="splash">
+  <div id="splash" class="splash">
     <div class="splash-center">
       <svg class="splash-logo" viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden>
         <rect width="108" height="108" fill="#0b0b0b"/>
@@ -25,7 +24,6 @@
       </div>
     </div>
   </div>
-  <!-- /SPLASH -->
 
   <header class="navbar">
     <div class="brand">
@@ -42,13 +40,13 @@
     </nav>
 
     <div class="actions">
-      <input id="searchInput" placeholder="Search" />
-      <button id="btnSearch">Search</button>
+      <input id="searchInput" placeholder="Search movies, shows..." />
+      <button id="btnSearch" class="red-btn">Search</button>
     </div>
   </header>
 
-  <main id="content" class="page-preload">
-    <!-- rows populated by assets/script.js from movies.js -->
+  <main id="content" class="content-root">
+    <!-- populated by script.js -->
   </main>
 
   <footer class="footer">

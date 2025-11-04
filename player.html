@@ -4,15 +4,14 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Player — NETMIRROR</title>
-  <link rel="stylesheet" href="player.css">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="movies.js"></script>
   <script defer src="player.js"></script>
 </head>
 <body>
   <div class="player-container">
     <video id="video" crossorigin="anonymous" playsinline>
-      <source src="videos/sample_720p.mp4" type="video/mp4" data-quality="720">
-      <source src="videos/sample_1080p.mp4" type="video/mp4" data-quality="1080">
-      <track id="vttTrack" label="English" kind="subtitles" srclang="en" src="subtitles/sample.srt" default>
+      <!-- sources will be set by player.js dynamically -->
       Your browser does not support HTML5 video.
     </video>
 
@@ -36,19 +35,14 @@
 
         <div class="seek-wrap">
           <input id="seek" type="range" min="0" max="100" step="0.1" value="0">
+          <div class="seek-progress" id="seekProgress"></div>
         </div>
 
         <div class="right">
-          <select id="qualitySelect" class="select"> 
-            <option value="720">720p</option>
-            <option value="1080">1080p</option>
-          </select>
-
+          <select id="qualitySelect" class="select"> </select>
           <select id="subsSelect" class="select">
             <option value="off">Subs Off</option>
-            <option value="en" selected>English</option>
           </select>
-
           <select id="speedSelect" class="select">
             <option value="0.5">0.5x</option>
             <option value="1" selected>1x</option>
