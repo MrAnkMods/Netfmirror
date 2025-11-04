@@ -1,53 +1,85 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NETMIRROR Player</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NETMIRROR — Player</title>
   <link rel="stylesheet" href="player.css">
 </head>
-
 <body>
-  <div class="player-container" id="playerContainer">
-    <video id="video" poster="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg">
-      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-    </video>
+  <div id="playerContainer" class="player-container">
+    <!-- VIDEO -->
+    <div class="video-wrap" id="videoWrap">
+      <video id="video" preload="metadata" playsinline webkit-playsinline></video>
+    </div>
 
-    <div class="player-ui" id="playerUI">
+    <!-- UI -->
+    <div id="playerUI" class="player-ui">
+      <!-- top bar -->
       <div class="topbar">
-        <button id="btnClose" class="icon-btn">⟵</button>
-        <div id="playerTitle" class="title">Big Buck Bunny</div>
-        <button id="btnFull" class="icon-btn">⛶</button>
+        <button id="btnClose" class="icon-btn">✕</button>
+        <div id="titleTop" class="title">S1:E1 "Episode 1"</div>
+        <div class="top-right">
+          <button id="btnPip" class="icon-btn" title="Picture-in-Picture">▦</button>
+          <button id="btnFull" class="icon-btn" title="Fullscreen">⛶</button>
+        </div>
       </div>
 
-      <div class="center-controls">
-        <button id="btnRew" class="big-btn">⏪</button>
-        <button id="btnPlay" class="big-play">▶</button>
-        <button id="btnFwd" class="big-btn">⏩</button>
-      </div>
-
-      <div class="bottombar">
-        <div class="left">
-          <div id="curTime" class="time">00:00</div>
-          <div class="seek-wrap">
-            <input id="seek" type="range" min="0" max="100" value="0">
+      <!-- center controls row -->
+      <div class="center-row">
+        <div class="left-center">
+          <!-- brightness vertical -->
+          <div class="brightness">
+            <div class="bright-icon">☼</div>
+            <input id="brightness" class="vrange" type="range" min="30" max="150" step="1" value="100" orient="vertical">
           </div>
-          <div id="durTime" class="time">00:00</div>
         </div>
 
-        <div class="right">
-          <select id="qualitySelect" class="select"></select>
-          <select id="subsSelect" class="select"></select>
-          <select id="speedSelect" class="select">
-            <option value="0.5">0.5x</option>
-            <option value="1" selected>1x</option>
-            <option value="1.5">1.5x</option>
-            <option value="2">2x</option>
-          </select>
+        <div class="mid-center">
+          <button id="btnSkipBack" class="circle-btn" title="Back 10s">⟲<span class="small">10</span></button>
+          <button id="bigPlay" class="big-play" title="Play/Pause">▶</button>
+          <button id="btnSkipFwd" class="circle-btn" title="Forward 10s">⟳<span class="small">10</span></button>
+        </div>
+
+        <div class="right-center">
+          <!-- empty for symmetry -->
+        </div>
+      </div>
+
+      <!-- progress + time -->
+      <div class="progress-row">
+        <div class="progress-wrap" id="progressWrap">
+          <div id="progressBar" class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          <div id="knob" class="progress-knob"></div>
+        </div>
+        <div class="time-right">
+          <span id="timeRight">00:00</span>
+        </div>
+      </div>
+
+      <!-- bottom control action row -->
+      <div class="bottom-actions">
+        <div class="action-left">
+          <button id="btnSpeed" class="action-btn">Speed (1x)</button>
+          <button id="btnLock" class="action-btn">Lock</button>
+        </div>
+
+        <div class="action-center">
+          <button id="btnEpisodes" class="action-btn">Episodes</button>
+          <button id="btnSubs" class="action-btn">Audio & Subtitles</button>
+          <button id="btnServers" class="action-btn">Server</button>
+        </div>
+
+        <div class="action-right">
+          <button id="btnNext" class="action-btn">Next Ep.</button>
+          <button id="btnSettings" class="action-btn">Settings</button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- small modals -->
+  <div id="modal" class="modal hidden"></div>
 
   <script src="movies.js"></script>
   <script src="player.js"></script>
