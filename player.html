@@ -1,37 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NETMIRROR — Player</title>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NetMirror Player</title>
   <link rel="stylesheet" href="player.css">
 </head>
 <body>
   <div id="playerContainer" class="player-container">
-    <!-- VIDEO -->
     <div class="video-wrap" id="videoWrap">
       <video id="video" preload="metadata" playsinline webkit-playsinline></video>
     </div>
 
-    <!-- UI -->
     <div id="playerUI" class="player-ui">
-      <!-- top bar -->
       <div class="topbar">
         <button id="btnClose" class="icon-btn">✕</button>
-        <div id="titleTop" class="title">S1:E1 "Episode 1"</div>
+        <div id="titleTop" class="title">Title</div>
         <div class="top-right">
-          <button id="btnPip" class="icon-btn" title="Picture-in-Picture">▦</button>
+          <button id="btnGrid" class="icon-btn" title="Episodes">▦</button>
           <button id="btnFull" class="icon-btn" title="Fullscreen">⛶</button>
         </div>
       </div>
 
-      <!-- center controls row -->
       <div class="center-row">
         <div class="left-center">
-          <!-- brightness vertical -->
           <div class="brightness">
             <div class="bright-icon">☼</div>
-            <input id="brightness" class="vrange" type="range" min="30" max="150" step="1" value="100" orient="vertical">
+            <input id="brightness" class="vrange" type="range" min="30" max="120" step="1" value="100" orient="vertical">
           </div>
         </div>
 
@@ -41,23 +35,17 @@
           <button id="btnSkipFwd" class="circle-btn" title="Forward 10s">⟳<span class="small">10</span></button>
         </div>
 
-        <div class="right-center">
-          <!-- empty for symmetry -->
-        </div>
+        <div class="right-center"></div>
       </div>
 
-      <!-- progress + time -->
       <div class="progress-row">
         <div class="progress-wrap" id="progressWrap">
           <div id="progressBar" class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
-          <div id="knob" class="progress-knob"></div>
+          <div id="knob" class="progress-knob" style="left:0%"></div>
         </div>
-        <div class="time-right">
-          <span id="timeRight">00:00</span>
-        </div>
+        <div class="time-right"><span id="timeRight">00:00</span></div>
       </div>
 
-      <!-- bottom control action row -->
       <div class="bottom-actions">
         <div class="action-left">
           <button id="btnSpeed" class="action-btn">Speed (1x)</button>
@@ -78,10 +66,9 @@
     </div>
   </div>
 
-  <!-- small modals -->
   <div id="modal" class="modal hidden"></div>
 
-  <script src="movies.js"></script>
+  <script src="catalog.js"></script>
   <script src="player.js"></script>
 </body>
 </html>
