@@ -2,97 +2,235 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Custom Video Player</title>
+  <title>Netflix Player with Extra Wide Center Controls</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { background: #000; color: #fff; margin: 0; padding: 0; }
-    .container { display: flex; }
-    .sidebar {
-      display: flex; flex-direction: column; padding: 20px; width: 120px;
-      background: #222; min-height: 100vh;
+    body { margin:0; background:#000; color:#fff; font-family:Arial,sans-serif; }
+    .container { width:100vw; height:100vh; position:relative; }
+    .screen-fit-btn {
+      position: absolute; top:32px; left:50%; transform:translateX(-50%);
+      background: rgba(25,25,34,0.17);
+      border: none; color: #fff; font-size:17px; padding:8px 21px; border-radius:9px; cursor:pointer; z-index:4;
     }
-    .sidebar button {
-      margin: 15px 0; background: #333; color: #fff;
-      border: none; padding: 10px; cursor: pointer; font-size: 15px;
+    .screen-fit-btn.active { background: rgba(25,25,34,0.17);}
+    .video-title {
+      position: absolute; top:18px; left:50%; transform:translateX(-50%);
+      font-size:15px; text-align:center; width:240px; font-weight:500; white-space:nowrap;
     }
-    .player { flex: 1; display: flex; justify-content: center; align-items: center; }
-    .video-wrapper { position: relative; width: 640px; }
-    .loading {
-      position: absolute; top: 45%; left: 30%; font-size: 22px; display: none;
+    .center-controls-row {
+      position: absolute; left:50%; top:48%; transform:translate(-50%,-50%);
+      display: flex; flex-direction: row; align-items: center; gap:170px; z-index:2;
+    }
+    .slider-wrap { display:flex; flex-direction:column; align-items:center; gap:7px; }
+    .slider-label { font-size:17px; }
+    .slider-vertical {
+      writing-mode: bt-lr; -webkit-appearance: slider-vertical;
+      width:11px; height:70px; accent-color:#fff; background: #222; border-radius:7px; border: none;
     }
     .controls {
-      display: flex; justify-content: center; margin: 12px 0;
+      display: flex; flex-direction: row; align-items: center; gap:33px;
     }
-    .controls button {
-      background: #333; color: #fff;
-      border: none; margin: 0 15px;
-      padding: 10px 18px; font-size: 18px; cursor: pointer;
+    .controls button { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; width:43px; height:43px; display:flex; align-items:center; justify-content:center;}
+    .controls .rewind { font-family:Arial; font-size:20px;}
+    .controls .playpause { font-size:20px;}
+    .controls .forward { font-family:Arial; font-size:20px;}
+    .loading-overlay {
+      position:absolute; left:50%; top:45%; transform:translate(-50%,-50%);
+      color:#fff; background:rgba(20,20,20,0.7); border-radius:7px; padding:14px 30px; font-size:16px; display:none; z-index:99;
     }
-    .title { text-align: center; margin: 15px 0 10px 0; font-size: 17px; }
-    .progress {
-      display: flex; align-items: center; margin: 12px 0;
+    .progress-row {
+      position: absolute; bottom:66px; left:36px; right:36px; display: flex; align-items: center; z-index:2;
     }
-    input[type='range'] { flex: 1; }
-    #current-time { margin-left: 12px; }
+    .progress-row input[type='range'] {
+      flex:1; height:9px; margin:0 10px; accent-color:#e51c23; background:transparent; border-radius:4px;
+    }
+    .progress-row .seek-time { font-size:14px; min-width:49px; text-align:right;}
+    .feature-row {
+      position:absolute; bottom:16px; left:35px; right:35px; display:flex;
+      flex-direction:row; justify-content: space-between; align-items:center; z-index:2;
+    }
+    .symbol-label {
+      display:flex; align-items:center; gap:6px; font-size:13px; font-family:Arial;
+    }
+    .symbol-label svg { height:17px; width:17px; fill:none; stroke:#fff; stroke-width:2; }
+    .video-el { display:none; }
+    .hide-ui .center-controls-row, .hide-ui .screen-fit-btn, .hide-ui .progress-row, .hide-ui .feature-row, .hide-ui .video-title { opacity:0; pointer-events:none; transition:opacity .3s; }
+    .locked .center-controls-row, .locked .screen-fit-btn, .locked .progress-row, .locked .feature-row, .locked .video-title { opacity:0; pointer-events:none; transition:opacity .3s; }
+    .locked .unlock-button { opacity:1 !important; pointer-events:all; }
+    .unlock-button {
+      display:flex;align-items:center;justify-content:center;
+      position:absolute;left:50%;top:80%;transform:translate(-50%,-50%);
+      background:#111a;color:#fff;font-size:19px;padding:15px 37px;border-radius:14px;border:none;z-index:51;opacity:0;transition:opacity .3s;outline:none;
+    }
+    @media (max-width:500px){
+      .video-title { width:110px; font-size:10px;}
+      .feature-row, .progress-row { left:6px; right:6px;}
+      .screen-fit-btn { padding:6px 13px; font-size:14px;}
+      .slider-vertical { width:9px; height:40px;}
+      .center-controls-row { gap:72px;}
+      .controls { gap:22px; }
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="sidebar">
-    <button>Subtitles</button>
-    <button>Servers</button>
-    <button>Settings</button>
-  </div>
-  <div class="player">
-    <div class="video-wrapper">
-      <video id="video" width="640" height="360" controls>
-        <source src="your-video.mp4" type="video/mp4">
+  <div class="container" id="playerContainer">
+    <button class="screen-fit-btn" id="fitBtn">Screen: Normal</button>
+    <div class="video-title" id="videoTitle">S3E4: 'It's Dolphin Time'</div>
+    <div class="player-video-fit normal" id="videoFitWrap">
+      <video id="video" class="video-el" width="100%" height="100%">
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4">
       </video>
-      <div class="loading" id="loading">Loading video...</div>
-      <div class="controls">
-        <button id="backward">⟲ 10s</button>
-        <button id="playpause">►</button>
-        <button id="forward">⟳ 10s</button>
+    </div>
+    <div class="center-controls-row">
+      <div class="slider-wrap">
+        <span class="slider-label">
+          <svg width="15" height="15" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3" stroke="#fff"/><line x1="10" y1="0" x2="10" y2="5"/><line x1="10" y1="15" x2="10" y2="20"/><line x1="0" y1="10" x2="5" y2="10"/><line x1="15" y1="10" x2="20" y2="10"/></svg>
+        </span>
+        <input type="range" min="0" max="100" value="50" class="slider-vertical" id="brightBar">
       </div>
-      <div class="title">The Conjuring: Last Files</div>
-      <div class="progress">
-        <input type="range" id="seekbar" min="0" value="0">
-        <span id="current-time">00:00</span>
+      <div class="controls">
+        <button class="rewind" id="backward">&#8634;<span style="font-size:10px;margin-left:2px;">10</span></button>
+        <button class="playpause paused" id="playpause">&#10073;&#10073;</button>
+        <button class="forward" id="forward">&#8635;<span style="font-size:10px;margin-left:2px;">10</span></button>
+      </div>
+      <div class="slider-wrap">
+        <span class="slider-label">
+          <svg width="15" height="15" viewBox="0 0 20 20"><path d="M3 10v7h7l5 5V5l-5 5H3z" stroke="#fff"/></svg>
+        </span>
+        <input type="range" min="0" max="100" value="80" class="slider-vertical" id="volumeBar">
       </div>
     </div>
+    <div class="loading-overlay" id="loading">Loading video...</div>
+    <div class="progress-row">
+      <input type="range" id="seekbar" min="0" value="0">
+      <span class="seek-time" id="current-time">00:00</span>
+    </div>
+    <div class="feature-row">
+      <span class="symbol-label" id="speed"><svg viewBox="0 0 20 20"><path d="M3 10h7m0 0l-2-3m2 3l-2 3"/><circle cx="13.5" cy="10" r="4.5"/></svg>
+        <span>Speed 1x</span>
+      </span>
+      <span class="symbol-label" id="lock">
+        <svg viewBox="0 0 20 20"><rect x="5" y="9" width="10" height="7"/><path d="M7 9V6a3 3 0 0 1 6 0v3"/></svg>
+        <span>Lock</span>
+      </span>
+      <span class="symbol-label" id="episodes">
+        <svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10"/><line x1="3" y1="9" x2="17" y2="9"/></svg>
+        <span>Episodes</span>
+      </span>
+      <span class="symbol-label" id="audio">
+        <svg viewBox="0 0 20 20"><rect x="4" y="8" width="5" height="7"/><path d="M9 8l4-4m0 0v12"/><circle cx="15" cy="10" r="2"/></svg>
+        <span>Audio & Subtitles</span>
+      </span>
+      <span class="symbol-label" id="nextEp">
+        <svg viewBox="0 0 20 20"><polygon points="7,5 15,10 7,15"/></svg>
+        <span>Next Ep.</span>
+      </span>
+    </div>
+    <button class="unlock-button" id="unlockBtn" style="opacity:0;">Unlock</button>
   </div>
-</div>
-<script>
-  const video = document.getElementById('video');
-  const playpause = document.getElementById('playpause');
-  const backward = document.getElementById('backward');
-  const forward = document.getElementById('forward');
-  const seekbar = document.getElementById('seekbar');
-  const loading = document.getElementById('loading');
-  const currentTime = document.getElementById('current-time');
-
-  video.addEventListener('waiting', () => { loading.style.display = 'block'; });
-  video.addEventListener('playing', () => { loading.style.display = 'none'; });
-
-  playpause.onclick = function() {
-    if (video.paused) {
-      video.play();
-      playpause.textContent = '❚❚'; // Pause symbol
-    } else {
-      video.pause();
-      playpause.textContent = '►'; // Play symbol
+  <script>
+    const video = document.getElementById('video');
+    const videoWrap = document.getElementById('videoFitWrap');
+    const fitBtn = document.getElementById('fitBtn');
+    const playpause = document.getElementById('playpause');
+    const backward = document.getElementById('backward');
+    const forward = document.getElementById('forward');
+    const seekbar = document.getElementById('seekbar');
+    const loading = document.getElementById('loading');
+    const currentTime = document.getElementById('current-time');
+    const speedBtn = document.getElementById('speed');
+    const brightBar = document.getElementById('brightBar');
+    const volumeBar = document.getElementById('volumeBar');
+    const lockBtn = document.getElementById('lock');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const playerContainer = document.getElementById('playerContainer');
+    let lockActive = false;
+    let hideUiTimeout = null;
+    let fitState = 0;
+    function updateFitClass(){
+      videoWrap.classList.remove('normal','fit','zoom');
+      if(fitState==0){
+        videoWrap.classList.add('normal');
+        fitBtn.textContent = "Screen: Normal";
+        fitBtn.classList.remove('active');
+      }
+      else if(fitState==1){
+        videoWrap.classList.add('fit');
+        fitBtn.textContent = "Screen: Fit";
+        fitBtn.classList.add('active');
+      }
+      else{
+        videoWrap.classList.add('zoom');
+        fitBtn.textContent = "Screen: Zoom";
+        fitBtn.classList.add('active');
+      }
     }
-  };
-  forward.onclick = function() { video.currentTime += 10; };
-  backward.onclick = function() { video.currentTime -= 10; };
-
-  video.ontimeupdate = function() {
-    seekbar.max = video.duration;
-    seekbar.value = video.currentTime;
-    let min = Math.floor(video.currentTime / 60);
-    let sec = Math.floor(video.currentTime % 60);
-    currentTime.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  };
-  seekbar.oninput = function() { video.currentTime = seekbar.value; };
-</script>
+    fitBtn.onclick = function(){ fitState = (fitState+1)%3; updateFitClass(); showUI(); }
+    function showUI(){
+      if(!lockActive){
+        playerContainer.classList.remove('hide-ui');
+        resetHideUiTimer();
+      }
+    }
+    function hideUI(){
+      if(!lockActive){
+        playerContainer.classList.add('hide-ui');
+      }
+    }
+    function resetHideUiTimer(){
+      clearTimeout(hideUiTimeout);
+      hideUiTimeout = setTimeout(hideUI, 5000);
+    }
+    playerContainer.addEventListener('mousemove', showUI);
+    playerContainer.addEventListener('touchstart', showUI);
+    playerContainer.addEventListener('click', showUI);
+    playpause.onclick = function() {
+      if(video.paused){ video.play(); playpause.innerHTML="&#10073;&#10073;"; }
+      else{ video.pause(); playpause.innerHTML="&#9654;"; }
+      showUI();
+    };
+    forward.onclick = function() { video.currentTime += 10; showUI(); };
+    backward.onclick = function() { video.currentTime -= 10; showUI(); };
+    video.ontimeupdate = function() {
+      seekbar.max = video.duration || 1;
+      seekbar.value = video.currentTime;
+      let min = Math.floor(video.currentTime/60);
+      let sec = Math.floor(video.currentTime%60);
+      currentTime.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    };
+    seekbar.oninput = function() { video.currentTime = seekbar.value; showUI(); };
+    video.addEventListener('waiting', function(){ loading.style.display='block'; });
+    video.addEventListener('playing', function(){ loading.style.display='none'; });
+    video.addEventListener('canplay', function(){ loading.style.display='none'; });
+    speedBtn.onclick = function(){
+      if(video.playbackRate < 2) video.playbackRate += 0.25;
+      else video.playbackRate = 1;
+      speedBtn.querySelector("span").textContent = `Speed ${video.playbackRate}x`;
+      showUI();
+    };
+    brightBar.oninput = function(e){
+      document.body.style.background = `rgba(0,0,0,${(100-e.target.value)/100+0.7})`;
+      showUI();
+    };
+    volumeBar.oninput = function(e){
+      video.volume = e.target.value / 100;
+      showUI();
+    };
+    video.addEventListener('play', function(){ resetHideUiTimer(); });
+    lockBtn.onclick = function(){
+      lockActive = true;
+      playerContainer.classList.add('locked');
+      unlockBtn.style.opacity=1;
+    };
+    unlockBtn.onclick = function(){
+      playerContainer.classList.remove('locked');
+      unlockBtn.style.opacity=0;
+      lockActive = false;
+      showUI();
+    };
+    video.style.display='block';
+    updateFitClass();
+    showUI();
+  </script>
 </body>
 </html>
