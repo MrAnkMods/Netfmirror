@@ -2,45 +2,163 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NetMirror Player</title>
-<link rel="stylesheet" href="player.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix Style Player</title>
+<style>
+  body {
+    margin: 0;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: black;
+  }
+
+  .controls {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .seekbar {
+    width: 90%;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .progress {
+    position: absolute;
+    height: 4px;
+    background: red;
+    width: 0%;
+    border-radius: 2px;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+
+  .control-btn {
+    color: white;
+    background: none;
+    border: none;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .center-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 70px;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .skip-btn {
+    position: absolute;
+    top: 50%;
+    font-size: 35px;
+    background: none;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  .skip-left {
+    left: 20%;
+    transform: translateY(-50%);
+  }
+
+  .skip-right {
+    right: 20%;
+    transform: translateY(-50%);
+  }
+
+</style>
 </head>
 <body>
-  <div class="player-container" id="playerContainer">
-    <div class="video-wrap">
-      <video id="video" preload="metadata" playsinline webkit-playsinline>
-        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-      </video>
+
+<div class="video-container">
+  <video id="moviePlayer" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
+
+  <button id="rewind" class="skip-btn skip-left">⏪10</button>
+  <button id="playPause" class="center-btn">⏸</button>
+  <button id="forward" class="skip-btn skip-right">10⏩</button>
+
+  <div class="controls">
+    <div class="seekbar">
+      <div id="progress" class="progress"></div>
     </div>
-
-    <div class="player-ui" id="playerUI">
-      <div class="topbar">
-        <button id="btnClose" class="icon-btn">✕</button>
-        <div class="title">Big Buck Bunny</div>
-        <button id="btnFull" class="icon-btn">⛶</button>
-      </div>
-
-      <div class="center-row">
-        <button id="btnBack" class="btn">⟲ 10s</button>
-        <button id="btnPlay" class="big-btn">⏵</button>
-        <button id="btnFwd" class="btn">10s ⟳</button>
-      </div>
-
-      <div class="bottom-bar">
-        <div class="progress-wrap" id="progressWrap">
-          <div class="progress-fill" id="progressFill"></div>
-          <div class="progress-knob" id="progressKnob"></div>
-        </div>
-        <div>
-          <span id="currentTime">00:00</span> / 
-          <span id="duration">00:00</span>
-        </div>
-        <button id="btnFit" class="btn">Fit Screen</button>
-      </div>
+    <div class="buttons">
+      <button class="control-btn">🎧 Speed (1x)</button>
+      <button class="control-btn">🔒 Lock</button>
+      <button class="control-btn">📂 Episodes</button>
+      <button class="control-btn">💬 Audio & Subtitles</button>
+      <button class="control-btn">⏭ Next Ep.</button>
     </div>
   </div>
+</div>
 
-<script src="player.js"></script>
+<script>
+  const video = document.getElementById('moviePlayer');
+  const playPause = document.getElementById('playPause');
+  const progress = document.getElementById('progress');
+  const rewind = document.getElementById('rewind');
+  const forward = document.getElementById('forward');
+
+  video.play();
+
+  playPause.onclick = () => {
+    if (video.paused) {
+      video.play();
+      playPause.textContent = '⏸';
+    } else {
+      video.pause();
+      playPause.textContent = '▶️';
+    }
+  };
+
+  video.addEventListener('timeupdate', () => {
+    const percent = (video.currentTime / video.duration) * 100;
+    progress.style.width = percent + '%';
+  });
+
+  rewind.onclick = () => {
+    video.currentTime -= 10;
+  };
+
+  forward.onclick = () => {
+    video.currentTime += 10;
+  };
+</script>
+
 </body>
 </html>
