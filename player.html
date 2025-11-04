@@ -3,205 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Netflix Player</title>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-  }
-
-  .video-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
-
-  video {
-    width: 100%;
-    height: auto;
-    max-height: 80vh;
-    object-fit: contain;
-    background-color: black;
-    transition: all 0.3s ease;
-  }
-
-  .zoomed video {
-    object-fit: cover;
-    height: 100vh;
-  }
-
-  .controls {
-    position: absolute;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-  }
-
-  .seekbar {
-    width: 90%;
-    height: 6px;
-    background: #333;
-    border-radius: 3px;
-    margin: 0 auto 10px auto;
-    position: relative;
-    cursor: pointer;
-  }
-
-  .progress {
-    position: absolute;
-    height: 6px;
-    background: red;
-    width: 0%;
-    border-radius: 3px;
-  }
-
-  .buttons {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    font-size: 13px;
-    flex-wrap: wrap;
-  }
-
-  .control-btn {
-    color: white;
-    background: none;
-    border: none;
-    font-size: 15px;
-    cursor: pointer;
-  }
-
-  .center-btn {
-    position: absolute;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 70px;
-    color: white;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-
-  .skip-btn {
-    position: absolute;
-    top: 45%;
-    font-size: 35px;
-    background: none;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-
-  .skip-left { left: 20%; transform: translateY(-50%); }
-  .skip-right { right: 20%; transform: translateY(-50%); }
-
-  .top-info {
-    position: absolute;
-    top: 10px;
-    width: 100%;
-    text-align: center;
-    font-size: 16px;
-    opacity: 0.9;
-  }
-
-  .zoom-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    color: white;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-  }
-
-</style>
+<title>Demo Player</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="video-container" id="videoContainer">
-  <video id="moviePlayer" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
+<div class="player-container">
+    <video id="videoPlayer" class="video" preload="metadata" poster="thumbnail.jpg">
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
 
-  <div class="top-info">Demo Movie</div>
-  <button id="zoomBtn" class="zoom-btn">🔍 Zoom</button>
+    <!-- Controls -->
+    <div class="controls">
+        <div class="top-bar">
+            <span id="title">Demo</span>
+        </div>
 
-  <button id="rewind" class="skip-btn skip-left">⏪10</button>
-  <button id="playPause" class="center-btn">⏸</button>
-  <button id="forward" class="skip-btn skip-right">10⏩</button>
+        <div class="center-controls">
+            <button id="rewindBtn" class="control-btn">&#8630; 10</button>
+            <button id="playPauseBtn" class="play-btn">❚❚</button>
+            <button id="forwardBtn" class="control-btn">10 &#8631;</button>
+        </div>
 
-  <div class="controls">
-    <div class="seekbar" id="seekbar">
-      <div id="progress" class="progress"></div>
+        <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
+        
+        <div class="bottom-bar">
+            <span id="currentTime">00:00</span>
+            <span id="duration">00:00</span>
+        </div>
     </div>
-    <div class="buttons">
-      <button class="control-btn">🎧 Speed (1x)</button>
-      <button class="control-btn">🔒 Lock</button>
-      <button class="control-btn">📂 Episodes</button>
-      <button class="control-btn">💬 Audio & Subtitles</button>
-      <button class="control-btn">⏭ Next Ep.</button>
-    </div>
-  </div>
 </div>
 
-<script>
-  const video = document.getElementById('moviePlayer');
-  const playPause = document.getElementById('playPause');
-  const progress = document.getElementById('progress');
-  const rewind = document.getElementById('rewind');
-  const forward = document.getElementById('forward');
-  const seekbar = document.getElementById('seekbar');
-  const zoomBtn = document.getElementById('zoomBtn');
-  const container = document.getElementById('videoContainer');
-
-  video.play();
-
-  playPause.onclick = () => {
-    if (video.paused) {
-      video.play();
-      playPause.textContent = '⏸';
-    } else {
-      video.pause();
-      playPause.textContent = '▶️';
-    }
-  };
-
-  video.addEventListener('timeupdate', () => {
-    const percent = (video.currentTime / video.duration) * 100;
-    progress.style.width = percent + '%';
-  });
-
-  rewind.onclick = () => { video.currentTime -= 10; };
-  forward.onclick = () => { video.currentTime += 10; };
-
-  seekbar.addEventListener('click', (e) => {
-    const rect = seekbar.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const newTime = (offsetX / rect.width) * video.duration;
-    video.currentTime = newTime;
-  });
-
-  // Zoom In / Out
-  let zoomed = false;
-  zoomBtn.onclick = () => {
-    zoomed = !zoomed;
-    if (zoomed) {
-      container.classList.add('zoomed');
-      zoomBtn.textContent = '🔎 Fit';
-    } else {
-      container.classList.remove('zoomed');
-      zoomBtn.textContent = '🔍 Zoom';
-    }
-  };
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
