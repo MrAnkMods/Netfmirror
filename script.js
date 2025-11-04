@@ -14,7 +14,7 @@
     items.forEach(function(m){
       var card = document.createElement('div');
       card.className = 'poster-card';
-      card.innerHTML = '<img src="'+(m.poster || 'assets/poster1.jpg')+'" alt="'+m.title+'"><div class="poster-title">'+m.title+'</div>';
+      card.innerHTML = '<img src="'+(m.poster || '')+'" alt="'+m.title+'"><div class="poster-title">'+m.title+'</div>';
       card.addEventListener('click', function(){ openDetails(m.id); });
       wrap.appendChild(card);
     });
@@ -23,6 +23,7 @@
 
   // show categories
   function renderHome(){
+    if (!content) return;
     content.innerHTML = '';
     var trending = movies.slice(0,6);
     content.appendChild(makeRow('Trending Now', trending));
@@ -32,28 +33,49 @@
   }
 
   // search
-  document.getElementById('btnSearch').addEventListener('click', function(){
-    var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-    if (!q){ renderHome(); return; }
-    var results = movies.filter(function(m){ return (m.title + ' ' + (m.description||'')).toLowerCase().indexOf(q) !== -1; });
-    content.innerHTML = '';
-    content.appendChild(makeRow('Search results for "'+q+'"', results));
-  });
+  var btnSearch = document.getElementById('btnSearch');
+  if (btnSearch){
+    btnSearch.addEventListener('click', function(){
+      var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      if (!q){ renderHome(); return; }
+      var results = movies.filter(function(m){ return (m.title + ' ' + (m.description||'')).toLowerCase().indexOf(q) !== -1; });
+      content.innerHTML = '';
+      content.appendChild(makeRow('Search results for "'+q+'"', results));
+    });
+  }
 
-  // details
+  // details open
   function openDetails(id){
-    // set location with query so details.html can parse
     window.location = 'details.html?id=' + encodeURIComponent(id);
+  }
+
+  // details page loader
+  function loadDetailsFromQuery(){
+    var q = new URLSearchParams(location.search);
+    var id = q.get('id');
+    if (!id) return;
+    var m = movies.find(function(x){ return x.id === id; });
+    if (!m) return;
+    var poster = document.getElementById('detailPoster');
+    var title = document.getElementById('detailTitle');
+    var meta = document.getElementById('detailMeta');
+    var desc = document.getElementById('detailDesc');
+    var playNow = document.getElementById('playNowBtn');
+    if (poster) poster.src = m.poster || '';
+    if (title) title.textContent = m.title;
+    if (meta) meta.textContent = m.year + ' • ' + (m.duration || '');
+    if (desc) desc.textContent = m.description || '';
+    if (playNow) playNow.href = 'player.html?id=' + encodeURIComponent(m.id);
   }
 
   // initial render
   renderHome();
+  loadDetailsFromQuery();
 
-  /* SPLASH LOGIC (if present) */
+  /* SPLASH LOGIC */
   try {
     var splash = document.getElementById('splash');
     if (splash){
-      document.body.classList.add('preload');
       var bar = document.getElementById('splashBar');
       var text = document.getElementById('splashText');
       var progress = 0;
@@ -75,7 +97,6 @@
       });
       setTimeout(function(){ if (!splash.classList.contains('splash-hidden')) hideSplash(); }, 9000);
       function hideSplash(){
-        document.body.classList.remove('preload');
         splash.classList.add('splash-hidden');
         setTimeout(function(){ try{ splash.parentNode && splash.parentNode.removeChild(splash); }catch(e){} }, 800);
       }
