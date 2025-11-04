@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Netflix Style Player</title>
 <style>
+  * { box-sizing: border-box; }
   body {
     margin: 0;
     background-color: black;
@@ -17,49 +18,50 @@
     position: relative;
     width: 100%;
     height: 100vh;
-    background-color: black;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   video {
     width: 100%;
-    height: 100%;
+    height: 80vh;
     object-fit: contain;
     background-color: black;
   }
 
   .controls {
     position: absolute;
-    bottom: 30px;
+    bottom: 10px;
     width: 100%;
     text-align: center;
   }
 
   .seekbar {
     width: 90%;
-    height: 4px;
+    height: 6px;
     background: #333;
-    border-radius: 2px;
-    margin: 0 auto;
+    border-radius: 3px;
+    margin: 0 auto 10px auto;
     position: relative;
+    cursor: pointer;
   }
 
   .progress {
     position: absolute;
-    height: 4px;
+    height: 6px;
     background: red;
     width: 0%;
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   .buttons {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    margin-top: 10px;
     font-size: 13px;
+    flex-wrap: wrap;
   }
 
   .control-btn {
@@ -72,7 +74,7 @@
 
   .center-btn {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 70px;
@@ -84,7 +86,7 @@
 
   .skip-btn {
     position: absolute;
-    top: 50%;
+    top: 45%;
     font-size: 35px;
     background: none;
     color: white;
@@ -92,15 +94,8 @@
     cursor: pointer;
   }
 
-  .skip-left {
-    left: 20%;
-    transform: translateY(-50%);
-  }
-
-  .skip-right {
-    right: 20%;
-    transform: translateY(-50%);
-  }
+  .skip-left { left: 20%; transform: translateY(-50%); }
+  .skip-right { right: 20%; transform: translateY(-50%); }
 
 </style>
 </head>
@@ -114,7 +109,7 @@
   <button id="forward" class="skip-btn skip-right">10⏩</button>
 
   <div class="controls">
-    <div class="seekbar">
+    <div class="seekbar" id="seekbar">
       <div id="progress" class="progress"></div>
     </div>
     <div class="buttons">
@@ -133,6 +128,7 @@
   const progress = document.getElementById('progress');
   const rewind = document.getElementById('rewind');
   const forward = document.getElementById('forward');
+  const seekbar = document.getElementById('seekbar');
 
   video.play();
 
@@ -151,13 +147,176 @@
     progress.style.width = percent + '%';
   });
 
-  rewind.onclick = () => {
-    video.currentTime -= 10;
+  rewind.onclick = () => { video.currentTime -= 10; };
+  forward.onclick = () => { video.currentTime += 10; };
+
+  seekbar.addEventListener('click', (e) => {
+    const rect = seekbar.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const newTime = (offsetX / rect.width) * video.duration;
+    video.currentTime = newTime;
+  });
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix Style Player</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  video {
+    width: 100%;
+    height: 80vh;
+    object-fit: contain;
+    background-color: black;
+  }
+
+  .controls {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .seekbar {
+    width: 90%;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    margin: 0 auto 10px auto;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .progress {
+    position: absolute;
+    height: 6px;
+    background: red;
+    width: 0%;
+    border-radius: 3px;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .control-btn {
+    color: white;
+    background: none;
+    border: none;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .center-btn {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 70px;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .skip-btn {
+    position: absolute;
+    top: 45%;
+    font-size: 35px;
+    background: none;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  .skip-left { left: 20%; transform: translateY(-50%); }
+  .skip-right { right: 20%; transform: translateY(-50%); }
+
+</style>
+</head>
+<body>
+
+<div class="video-container">
+  <video id="moviePlayer" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
+
+  <button id="rewind" class="skip-btn skip-left">⏪10</button>
+  <button id="playPause" class="center-btn">⏸</button>
+  <button id="forward" class="skip-btn skip-right">10⏩</button>
+
+  <div class="controls">
+    <div class="seekbar" id="seekbar">
+      <div id="progress" class="progress"></div>
+    </div>
+    <div class="buttons">
+      <button class="control-btn">🎧 Speed (1x)</button>
+      <button class="control-btn">🔒 Lock</button>
+      <button class="control-btn">📂 Episodes</button>
+      <button class="control-btn">💬 Audio & Subtitles</button>
+      <button class="control-btn">⏭ Next Ep.</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById('moviePlayer');
+  const playPause = document.getElementById('playPause');
+  const progress = document.getElementById('progress');
+  const rewind = document.getElementById('rewind');
+  const forward = document.getElementById('forward');
+  const seekbar = document.getElementById('seekbar');
+
+  video.play();
+
+  playPause.onclick = () => {
+    if (video.paused) {
+      video.play();
+      playPause.textContent = '⏸';
+    } else {
+      video.pause();
+      playPause.textContent = '▶️';
+    }
   };
 
-  forward.onclick = () => {
-    video.currentTime += 10;
-  };
+  video.addEventListener('timeupdate', () => {
+    const percent = (video.currentTime / video.duration) * 100;
+    progress.style.width = percent + '%';
+  });
+
+  rewind.onclick = () => { video.currentTime -= 10; };
+  forward.onclick = () => { video.currentTime += 10; };
+
+  seekbar.addEventListener('click', (e) => {
+    const rect = seekbar.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const newTime = (offsetX / rect.width) * video.duration;
+    video.currentTime = newTime;
+  });
 </script>
 
 </body>
