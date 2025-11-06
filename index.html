@@ -1,56 +1,158 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>NETMIRROR — Home</title>
-  <link rel="stylesheet" href="style.css">
-  <script defer src="movies.js"></script>
-  <script defer src="script.js"></script>
+<meta charset="UTF-8">
+<title>NMix – Movies & Series</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden;}
+
+  /* Splash */
+  #splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;z-index:9999;transition:opacity 1s ease;}
+  #splash.hidden{opacity:0;pointer-events:none;}
+  .logo{font-size:70px;font-weight:900;color:#e50914;text-shadow:0 0 20px #e50914,0 0 40px #b00610;
+    animation:fadein 2s ease-in-out forwards;}
+  @keyframes fadein{from{opacity:0;transform:scale(.6);}to{opacity:1;transform:scale(1);}}
+  .loader{width:120px;height:4px;background:#333;margin-top:14px;overflow:hidden;border-radius:3px;}
+  .loader span{display:block;width:0;height:100%;background:#e50914;animation:load 3s forwards;}
+  @keyframes load{to{width:100%;}}
+
+  header{display:flex;align-items:center;justify-content:space-between;background:#111;padding:12px 14px;position:sticky;top:0;}
+  header h1{color:#e50914;font-weight:bold;margin:0;}
+  .search-bar{display:flex;align-items:center;background:#1b1b1b;border-radius:20px;padding:6px 10px;flex:1;margin-left:12px;}
+  .search-bar input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;}
+  .search-bar svg{width:20px;height:20px;fill:#aaa;margin-right:6px;}
+
+  .banner{position:relative;width:100%;height:260px;overflow:hidden;}
+  .banner img{width:100%;height:100%;object-fit:cover;filter:brightness(70%);}
+  .banner .info{position:absolute;bottom:20px;left:20px;}
+  .banner h2{margin:0 0 8px;font-size:22px;}
+  .banner button{background:#e50914;border:none;padding:8px 16px;border-radius:6px;color:#fff;cursor:pointer;}
+
+  .section{margin:16px 0;}
+  .section h2{font-size:18px;margin:10px 18px;}
+  .scroll-row{display:flex;overflow-x:auto;gap:10px;padding:0 16px 6px;scrollbar-width:none;}
+  .scroll-row::-webkit-scrollbar{display:none;}
+  .card{min-width:140px;background:#141414;border-radius:8px;overflow:hidden;cursor:pointer;transition:.25s;}
+  .card:hover{transform:scale(1.06);}
+  .card img{width:100%;height:200px;object-fit:cover;}
+  .card h4{margin:6px;text-align:center;font-size:13px;}
+  .loading{text-align:center;margin-top:80px;color:#777;}
+</style>
 </head>
 <body>
-  <div id="splash" class="splash">
-    <div class="splash-center">
-      <svg class="splash-logo" viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-        <rect width="108" height="108" fill="#0b0b0b"/>
-        <path id="N-left" d="M25 10h12l20 50h-12z" fill="#E50914"/>
-        <path id="N-mid"  d="M51 10h12v88h-12z" fill="#B0060F"/>
-        <path id="N-right" d="M25 10l38 88h12l-38-88z" fill="#E50914"/>
-      </svg>
-      <div class="splash-title">NETMIRROR</div>
-      <div class="splash-progress">
-        <div class="bar"><div class="bar-fill" id="splashBar"></div></div>
-        <div class="loading-text" id="splashText">Loading…</div>
-      </div>
-    </div>
+
+<div id="splash">
+  <div class="logo">NMix</div>
+  <div class="loader"><span></span></div>
+  <audio id="introSound" src="assets/splash.mp3"></audio>
+</div>
+
+<header>
+  <h1>🎬 NMix</h1>
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 015.293 13.707l5 5-1.414 1.414-5-5A8 8 0 1110 2zm0 2a6 6 0 100 12 6 6 0 000-12z"/></svg>
+    <input id="search" type="text" placeholder="Search Movies or Series...">
   </div>
+</header>
 
-  <header class="navbar">
-    <div class="brand">
-      <div class="logo-svg" aria-hidden>
-        <svg viewBox="0 0 108 108" width="36" height="36"><rect width="108" height="108" fill="#0b0b0b"/><path d="M25 10h12l20 50h-12z" fill="#E50914"/><path d="M51 10h12v88h-12z" fill="#B0060F"/><path d="M25 10l38 88h12l-38-88z" fill="#E50914"/></svg>
-      </div>
-      <div class="brand-text">NETMIRROR</div>
-    </div>
+<div class="banner" id="banner">
+  <img id="bannerImg" src="assets/banner1.jpg" alt="">
+  <div class="info">
+    <h2 id="bannerTitle">Loading...</h2>
+    <button id="watchNow">Watch Now</button>
+  </div>
+</div>
 
-    <nav class="navlinks">
-      <a href="#">Home</a>
-      <a href="#">Movies</a>
-      <a href="#">Series</a>
-    </nav>
+<div id="content"></div>
+<div class="loading" id="loading">Loading content...</div>
 
-    <div class="actions">
-      <input id="searchInput" placeholder="Search movies, shows..." />
-      <button id="btnSearch" class="red-btn">Search</button>
-    </div>
-  </header>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-  <main id="content" class="content-root">
-    <!-- populated by script.js -->
-  </main>
+const firebaseConfig={
+  apiKey:"AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+  authDomain:"ankmods0.firebaseapp.com",
+  databaseURL:"https://ankmods0-default-rtdb.firebaseio.com",
+  projectId:"ankmods0",
+  storageBucket:"ankmods0.firebasestorage.app",
+  messagingSenderId:"760044029682",
+  appId:"1:760044029682:web:a5c234e03542c309ce726b"
+};
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
 
-  <footer class="footer">
-    <div>© <span id="year"></span> NETMIRROR</div>
-  </footer>
+// Splash
+window.addEventListener('load',()=>{
+  const sound=document.getElementById('introSound');
+  setTimeout(()=>sound.play().catch(()=>{}),600);
+  setTimeout(()=>document.getElementById('splash').classList.add('hidden'),3000);
+});
+
+const cats=["Horror","Mystery","Adventure","Latest","Trending","Top 10"];
+const content=document.getElementById("content");
+const search=document.getElementById("search");
+const bannerImg=document.getElementById("bannerImg");
+const bannerTitle=document.getElementById("bannerTitle");
+const watchNow=document.getElementById("watchNow");
+const loading=document.getElementById("loading");
+
+let allMovies=[],allSeries=[],bannerList=[],bIndex=0;
+
+onValue(ref(db,"movies"),snap=>{allMovies=[];snap.forEach(s=>allMovies.push({id:s.key,...s.val()}));update();});
+onValue(ref(db,"series"),snap=>{allSeries=[];snap.forEach(s=>allSeries.push({id:s.key,...s.val()}));update();});
+
+function update(){if(allMovies.length||allSeries.length){loading.style.display="none";buildSections();setupBanner();}}
+
+function buildSections(q=""){
+  content.innerHTML="";
+  let m=allMovies,s=allSeries;
+  if(q){
+    q=q.toLowerCase();
+    m=m.filter(x=>x.title.toLowerCase().includes(q));
+    s=s.filter(x=>x.title.toLowerCase().includes(q));
+  }
+  cats.forEach(cat=>{
+    const sec=document.createElement("div");sec.className="section";
+    const h=document.createElement("h2");h.textContent=cat;
+    const row=document.createElement("div");row.className="scroll-row";
+    const items=[...m.filter(x=>x.category===cat),...s.filter(x=>x.category===cat)];
+    items.forEach(item=>{
+      const card=document.createElement("div");card.className="card";
+      card.innerHTML=`<img src="${item.poster}"><h4>${item.title}</h4>`;
+      card.onclick=()=>openItem(item);
+      row.appendChild(card);
+    });
+    if(row.children.length){sec.appendChild(h);sec.appendChild(row);content.appendChild(sec);}
+  });
+}
+search.oninput=()=>buildSections(search.value.trim());
+
+function setupBanner(){
+  bannerList=[...allMovies.filter(x=>x.category==="Top 10"||x.category==="Trending"),
+              ...allSeries.filter(x=>x.category==="Top 10"||x.category==="Trending")];
+  if(!bannerList.length)return;
+  showBanner();
+  setInterval(()=>{bIndex=(bIndex+1)%bannerList.length;showBanner();},5000);
+}
+function showBanner(){
+  const item=bannerList[bIndex];
+  bannerImg.src=item.poster;
+  bannerTitle.textContent=item.title;
+  watchNow.onclick=()=>openItem(item);
+}
+
+function openItem(item){
+  if(item.video){ // Movie
+    location.href=`movie.html?id=${item.id}`;
+  }else if(item.seasons){ // Series
+    location.href=`series.html?id=${item.id}`;
+  }
+}
+</script>
 </body>
 </html>

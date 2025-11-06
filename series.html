@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NMix — Series</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+<style>
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;}
+  .container{padding:15px;}
+  .poster{width:100%;max-height:280px;object-fit:cover;border-radius:8px;margin-bottom:10px;}
+  h1{font-size:22px;margin-bottom:10px;color:#e50914;}
+  select{width:100%;padding:10px;border:none;border-radius:6px;background:#111;color:#fff;margin-bottom:15px;}
+  .episode{background:#111;border-radius:6px;padding:12px;margin:8px 0;cursor:pointer;transition:.3s;}
+  .episode:hover{background:#1b1b1b;}
+  .episode span{color:#aaa;font-size:13px;}
+  .back-btn{
+    display:inline-flex;align-items:center;gap:6px;background:#e50914;border:none;color:#fff;
+    padding:8px 14px;border-radius:6px;cursor:pointer;margin-bottom:12px;
+  }
+  .back-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;}
+</style>
+</head>
+<body>
+<div class="container">
+  <button class="back-btn" onclick="window.history.back()">
+    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg> Back
+  </button>
+  <h1 id="title">Loading...</h1>
+  <img id="poster" class="poster" src="">
+  <select id="seasonSelect"></select>
+  <div id="episodes"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+  authDomain:"ankmods0.firebaseapp.com",
+  databaseURL:"https://ankmods0-default-rtdb.firebaseio.com",
+  projectId:"ankmods0",
+  storageBucket:"ankmods0.firebasestorage.app",
+  messagingSenderId:"760044029682",
+  appId:"1:760044029682:web:a5c234e03542c309ce726b"
+};
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+
+const qs=new URLSearchParams(location.search);
+const id=qs.get("id");
+const titleEl=document.getElementById("title");
+const posterEl=document.getElementById("poster");
+const seasonSelect=document.getElementById("seasonSelect");
+const episodesEl=document.getElementById("episodes");
+
+onValue(ref(db,"series/"+id),snap=>{
+  const data=snap.val();
+  if(!data)return;
+  titleEl.textContent=data.title;
+  posterEl.src=data.poster;
+  seasonSelect.innerHTML="";
+  data.seasons.forEach((s,i)=>{
+    const opt=document.createElement("option");
+    opt.value=i;opt.textContent=s.season;
+    seasonSelect.appendChild(opt);
+  });
+  loadSeason(0);
+  seasonSelect.onchange=()=>loadSeason(seasonSelect.value);
+
+  function loadSeason(i){
+    episodesEl.innerHTML="";
+    const season=data.seasons[i];
+    season.episodes.forEach((ep,index)=>{
+      const div=document.createElement("div");
+      div.className="episode";
+      div.innerHTML=`<b>${ep.epTitle}</b><br><span>${season.season}</span>`;
+      const nextEp = season.episodes[index+1];
+      const nextUrl = nextEp ? 
+        `player.html?title=${encodeURIComponent(data.title + " — " + nextEp.epTitle)}&src=${encodeURIComponent(nextEp.video)}&poster=${encodeURIComponent(data.poster)}` 
+        : "";
+      div.onclick=()=>openEpisode(ep.epTitle, ep.video, data.poster, data.title, nextUrl);
+      episodesEl.appendChild(div);
+    });
+  }
+});
+
+function openEpisode(epTitle, video, poster, seriesTitle, nextUrl){
+  const titleFull = seriesTitle + " — " + epTitle;
+  location.href = `player.html?title=${encodeURIComponent(titleFull)}&src=${encodeURIComponent(video)}&poster=${encodeURIComponent(poster)}${nextUrl ? "&next="+encodeURIComponent(nextUrl) : ""}`;
+}
+</script>
+</body>
+</html>

@@ -1,236 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Netflix Player with Extra Wide Center Controls</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { margin:0; background:#000; color:#fff; font-family:Arial,sans-serif; }
-    .container { width:100vw; height:100vh; position:relative; }
-    .screen-fit-btn {
-      position: absolute; top:32px; left:50%; transform:translateX(-50%);
-      background: rgba(25,25,34,0.17);
-      border: none; color: #fff; font-size:17px; padding:8px 21px; border-radius:9px; cursor:pointer; z-index:4;
-    }
-    .screen-fit-btn.active { background: rgba(25,25,34,0.17);}
-    .video-title {
-      position: absolute; top:18px; left:50%; transform:translateX(-50%);
-      font-size:15px; text-align:center; width:240px; font-weight:500; white-space:nowrap;
-    }
-    .center-controls-row {
-      position: absolute; left:50%; top:48%; transform:translate(-50%,-50%);
-      display: flex; flex-direction: row; align-items: center; gap:170px; z-index:2;
-    }
-    .slider-wrap { display:flex; flex-direction:column; align-items:center; gap:7px; }
-    .slider-label { font-size:17px; }
-    .slider-vertical {
-      writing-mode: bt-lr; -webkit-appearance: slider-vertical;
-      width:11px; height:70px; accent-color:#fff; background: #222; border-radius:7px; border: none;
-    }
-    .controls {
-      display: flex; flex-direction: row; align-items: center; gap:33px;
-    }
-    .controls button { background:none; border:none; color:#fff; font-size:22px; cursor:pointer; width:43px; height:43px; display:flex; align-items:center; justify-content:center;}
-    .controls .rewind { font-family:Arial; font-size:20px;}
-    .controls .playpause { font-size:20px;}
-    .controls .forward { font-family:Arial; font-size:20px;}
-    .loading-overlay {
-      position:absolute; left:50%; top:45%; transform:translate(-50%,-50%);
-      color:#fff; background:rgba(20,20,20,0.7); border-radius:7px; padding:14px 30px; font-size:16px; display:none; z-index:99;
-    }
-    .progress-row {
-      position: absolute; bottom:66px; left:36px; right:36px; display: flex; align-items: center; z-index:2;
-    }
-    .progress-row input[type='range'] {
-      flex:1; height:9px; margin:0 10px; accent-color:#e51c23; background:transparent; border-radius:4px;
-    }
-    .progress-row .seek-time { font-size:14px; min-width:49px; text-align:right;}
-    .feature-row {
-      position:absolute; bottom:16px; left:35px; right:35px; display:flex;
-      flex-direction:row; justify-content: space-between; align-items:center; z-index:2;
-    }
-    .symbol-label {
-      display:flex; align-items:center; gap:6px; font-size:13px; font-family:Arial;
-    }
-    .symbol-label svg { height:17px; width:17px; fill:none; stroke:#fff; stroke-width:2; }
-    .video-el { display:none; }
-    .hide-ui .center-controls-row, .hide-ui .screen-fit-btn, .hide-ui .progress-row, .hide-ui .feature-row, .hide-ui .video-title { opacity:0; pointer-events:none; transition:opacity .3s; }
-    .locked .center-controls-row, .locked .screen-fit-btn, .locked .progress-row, .locked .feature-row, .locked .video-title { opacity:0; pointer-events:none; transition:opacity .3s; }
-    .locked .unlock-button { opacity:1 !important; pointer-events:all; }
-    .unlock-button {
-      display:flex;align-items:center;justify-content:center;
-      position:absolute;left:50%;top:80%;transform:translate(-50%,-50%);
-      background:#111a;color:#fff;font-size:19px;padding:15px 37px;border-radius:14px;border:none;z-index:51;opacity:0;transition:opacity .3s;outline:none;
-    }
-    @media (max-width:500px){
-      .video-title { width:110px; font-size:10px;}
-      .feature-row, .progress-row { left:6px; right:6px;}
-      .screen-fit-btn { padding:6px 13px; font-size:14px;}
-      .slider-vertical { width:9px; height:40px;}
-      .center-controls-row { gap:72px;}
-      .controls { gap:22px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>NMix — Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape">
+<style>
+  :root{--brand:#e50914;--glass:rgba(20,20,20,.55);--stroke:#3a3a3a}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+  .wrap{position:fixed;inset:0}
+
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .25s}
+  .fit video{object-fit:contain}
+
+  .dim{position:absolute;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .15s;z-index:2}
+
+  /* Top bar */
+  .topBar{position:absolute;top:10px;left:10px;right:10px;z-index:6;display:grid;
+          grid-template-columns:42px 1fr 42px;align-items:center;gap:10px}
+  .closeX,.btnIcon{width:42px;height:42px;border-radius:12px;background:rgba(20,20,20,.55);
+                   border:1px solid var(--stroke);display:grid;place-items:center;backdrop-filter:blur(6px);cursor:pointer}
+  .titleTop{justify-self:center;max-width:70vw;padding:8px 14px;border-radius:12px;background:rgba(20,20,20,.55);
+            border:1px solid var(--stroke);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+            box-shadow:0 4px 14px rgba(0,0,0,.35)}
+
+  /* Center controls FIXED perfectly in one horizontal line */
+  .center{
+    position:absolute;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    display:flex;align-items:center;justify-content:center;
+    gap:70px;z-index:5;
+  }
+  .round{
+    width:72px;height:72px;border-radius:50%;
+    border:2px solid rgba(255,255,255,.35);
+    background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.2));
+    display:grid;place-items:center;cursor:pointer;
+    transition:all .25s;
+  }
+  .round:hover{transform:scale(1.05)}
+  .pp{font-size:72px;line-height:0}
+
+  /* Progress + bottom bar */
+  .progress{position:absolute;left:12px;right:12px;bottom:58px;height:4px;background:#4b4b4b;border-radius:4px;overflow:hidden;z-index:5}
+  .progress>span{display:block;height:100%;width:0;background:var(--brand)}
+
+  .bottom{position:absolute;left:0;right:0;bottom:8px;z-index:5;padding:6px 12px 10px;
+          display:grid;grid-template-columns:42px 132px 1fr repeat(4,42px);gap:12px;align-items:center}
+  .time{font-size:14px;text-align:left}
+  .scrub{width:100%;height:6px;appearance:none;background:#6b6b6b;border-radius:6px;outline:none}
+  .scrub::-webkit-slider-thumb{appearance:none;width:0;height:0}
+  .icon{width:26px;height:26px;fill:#fff}
+
+  /* Settings sheet */
+  .sheet{position:absolute;right:84px;top:50%;transform:translateY(-50%);background:rgba(15,15,15,.96);
+         border:1px solid #2f2f2f;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.55);
+         width:300px;padding:16px;color:#eee;z-index:7;display:none}
+  .sheet.open{display:block}
+  .row{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
+  .chip{padding:7px 11px;border:1px solid #3b3b3b;border-radius:10px;background:#191919;color:#fff;cursor:pointer}
+  .chip.active{border-color:#fff;background:#242424}
+  .zoomBtns .chip{min-width:40px;text-align:center}
+  .vert{display:flex;gap:26px;justify-content:center;margin-top:8px}
+  .vWrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .vWrap input{writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:16px;height:160px;accent-color:#fff;background:#222;border:none;border-radius:10px}
+
+  /* Hide/Lock */
+  .hide .topBar,.hide .gear,.hide .center,.hide .progress,.hide .bottom,.hide .sheet{opacity:0;pointer-events:none;transition:opacity .25s}
+  .locked .topBar,.locked .gear,.locked .center,.locked .progress,.locked .bottom,.locked .sheet{opacity:0;pointer-events:none;transition:opacity .25s}
+  .unlock{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);background:#111a;color:#fff;border:none;
+          border-radius:14px;padding:14px 22px;display:none;z-index:7}
+  .locked .unlock{display:block}
+
+  @media (max-width:740px){
+    .center{gap:48px}.round{width:62px;height:62px}.pp{font-size:60px}
+    .bottom{grid-template-columns:42px 118px 1fr repeat(4,42px)}
+  }
+</style>
 </head>
 <body>
-  <div class="container" id="playerContainer">
-    <button class="screen-fit-btn" id="fitBtn">Screen: Normal</button>
-    <div class="video-title" id="videoTitle">S3E4: 'It's Dolphin Time'</div>
-    <div class="player-video-fit normal" id="videoFitWrap">
-      <video id="video" class="video-el" width="100%" height="100%">
-        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4">
-      </video>
-    </div>
-    <div class="center-controls-row">
-      <div class="slider-wrap">
-        <span class="slider-label">
-          <svg width="15" height="15" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3" stroke="#fff"/><line x1="10" y1="0" x2="10" y2="5"/><line x1="10" y1="15" x2="10" y2="20"/><line x1="0" y1="10" x2="5" y2="10"/><line x1="15" y1="10" x2="20" y2="10"/></svg>
-        </span>
-        <input type="range" min="0" max="100" value="50" class="slider-vertical" id="brightBar">
-      </div>
-      <div class="controls">
-        <button class="rewind" id="backward">&#8634;<span style="font-size:10px;margin-left:2px;">10</span></button>
-        <button class="playpause paused" id="playpause">&#10073;&#10073;</button>
-        <button class="forward" id="forward">&#8635;<span style="font-size:10px;margin-left:2px;">10</span></button>
-      </div>
-      <div class="slider-wrap">
-        <span class="slider-label">
-          <svg width="15" height="15" viewBox="0 0 20 20"><path d="M3 10v7h7l5 5V5l-5 5H3z" stroke="#fff"/></svg>
-        </span>
-        <input type="range" min="0" max="100" value="80" class="slider-vertical" id="volumeBar">
-      </div>
-    </div>
-    <div class="loading-overlay" id="loading">Loading video...</div>
-    <div class="progress-row">
-      <input type="range" id="seekbar" min="0" value="0">
-      <span class="seek-time" id="current-time">00:00</span>
-    </div>
-    <div class="feature-row">
-      <span class="symbol-label" id="speed"><svg viewBox="0 0 20 20"><path d="M3 10h7m0 0l-2-3m2 3l-2 3"/><circle cx="13.5" cy="10" r="4.5"/></svg>
-        <span>Speed 1x</span>
-      </span>
-      <span class="symbol-label" id="lock">
-        <svg viewBox="0 0 20 20"><rect x="5" y="9" width="10" height="7"/><path d="M7 9V6a3 3 0 0 1 6 0v3"/></svg>
-        <span>Lock</span>
-      </span>
-      <span class="symbol-label" id="episodes">
-        <svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10"/><line x1="3" y1="9" x2="17" y2="9"/></svg>
-        <span>Episodes</span>
-      </span>
-      <span class="symbol-label" id="audio">
-        <svg viewBox="0 0 20 20"><rect x="4" y="8" width="5" height="7"/><path d="M9 8l4-4m0 0v12"/><circle cx="15" cy="10" r="2"/></svg>
-        <span>Audio & Subtitles</span>
-      </span>
-      <span class="symbol-label" id="nextEp">
-        <svg viewBox="0 0 20 20"><polygon points="7,5 15,10 7,15"/></svg>
-        <span>Next Ep.</span>
-      </span>
-    </div>
-    <button class="unlock-button" id="unlockBtn" style="opacity:0;">Unlock</button>
+<div class="wrap" id="wrap">
+  <video id="vid" playsinline preload="metadata"></video>
+  <div class="dim" id="dim"></div>
+
+  <div class="topBar">
+    <button class="closeX" id="btnClose" aria-label="Close">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <div class="titleTop" id="titleTop">Loading…</div>
+    <button class="btnIcon" id="gear" aria-label="Settings">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zM4 12h2m12 0h2M12 4v2m0 12v2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
   </div>
-  <script>
-    const video = document.getElementById('video');
-    const videoWrap = document.getElementById('videoFitWrap');
-    const fitBtn = document.getElementById('fitBtn');
-    const playpause = document.getElementById('playpause');
-    const backward = document.getElementById('backward');
-    const forward = document.getElementById('forward');
-    const seekbar = document.getElementById('seekbar');
-    const loading = document.getElementById('loading');
-    const currentTime = document.getElementById('current-time');
-    const speedBtn = document.getElementById('speed');
-    const brightBar = document.getElementById('brightBar');
-    const volumeBar = document.getElementById('volumeBar');
-    const lockBtn = document.getElementById('lock');
-    const unlockBtn = document.getElementById('unlockBtn');
-    const playerContainer = document.getElementById('playerContainer');
-    let lockActive = false;
-    let hideUiTimeout = null;
-    let fitState = 0;
-    function updateFitClass(){
-      videoWrap.classList.remove('normal','fit','zoom');
-      if(fitState==0){
-        videoWrap.classList.add('normal');
-        fitBtn.textContent = "Screen: Normal";
-        fitBtn.classList.remove('active');
-      }
-      else if(fitState==1){
-        videoWrap.classList.add('fit');
-        fitBtn.textContent = "Screen: Fit";
-        fitBtn.classList.add('active');
-      }
-      else{
-        videoWrap.classList.add('zoom');
-        fitBtn.textContent = "Screen: Zoom";
-        fitBtn.classList.add('active');
-      }
-    }
-    fitBtn.onclick = function(){ fitState = (fitState+1)%3; updateFitClass(); showUI(); }
-    function showUI(){
-      if(!lockActive){
-        playerContainer.classList.remove('hide-ui');
-        resetHideUiTimer();
-      }
-    }
-    function hideUI(){
-      if(!lockActive){
-        playerContainer.classList.add('hide-ui');
-      }
-    }
-    function resetHideUiTimer(){
-      clearTimeout(hideUiTimeout);
-      hideUiTimeout = setTimeout(hideUI, 5000);
-    }
-    playerContainer.addEventListener('mousemove', showUI);
-    playerContainer.addEventListener('touchstart', showUI);
-    playerContainer.addEventListener('click', showUI);
-    playpause.onclick = function() {
-      if(video.paused){ video.play(); playpause.innerHTML="&#10073;&#10073;"; }
-      else{ video.pause(); playpause.innerHTML="&#9654;"; }
-      showUI();
-    };
-    forward.onclick = function() { video.currentTime += 10; showUI(); };
-    backward.onclick = function() { video.currentTime -= 10; showUI(); };
-    video.ontimeupdate = function() {
-      seekbar.max = video.duration || 1;
-      seekbar.value = video.currentTime;
-      let min = Math.floor(video.currentTime/60);
-      let sec = Math.floor(video.currentTime%60);
-      currentTime.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-    };
-    seekbar.oninput = function() { video.currentTime = seekbar.value; showUI(); };
-    video.addEventListener('waiting', function(){ loading.style.display='block'; });
-    video.addEventListener('playing', function(){ loading.style.display='none'; });
-    video.addEventListener('canplay', function(){ loading.style.display='none'; });
-    speedBtn.onclick = function(){
-      if(video.playbackRate < 2) video.playbackRate += 0.25;
-      else video.playbackRate = 1;
-      speedBtn.querySelector("span").textContent = `Speed ${video.playbackRate}x`;
-      showUI();
-    };
-    brightBar.oninput = function(e){
-      document.body.style.background = `rgba(0,0,0,${(100-e.target.value)/100+0.7})`;
-      showUI();
-    };
-    volumeBar.oninput = function(e){
-      video.volume = e.target.value / 100;
-      showUI();
-    };
-    video.addEventListener('play', function(){ resetHideUiTimer(); });
-    lockBtn.onclick = function(){
-      lockActive = true;
-      playerContainer.classList.add('locked');
-      unlockBtn.style.opacity=1;
-    };
-    unlockBtn.onclick = function(){
-      playerContainer.classList.remove('locked');
-      unlockBtn.style.opacity=0;
-      lockActive = false;
-      showUI();
-    };
-    video.style.display='block';
-    updateFitClass();
+
+  <!-- Fixed aligned center controls -->
+  <div class="center">
+    <button class="round" id="back10" title="-10s">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 6V3L7 7l5 4V8a6 6 0 1 1-6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="pp" id="pp">❙❙</div>
+    <button class="round" id="fwd10" title="+10s">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 6V3l5 4-5 4V8a6 6 0 1 0 6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <div class="progress"><span id="prog"></span></div>
+
+  <div class="bottom">
+    <button class="btnIcon" id="volBtn" title="Mute/Unmute">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4H4z" fill="#fff"/></svg>
+    </button>
+    <div class="time" id="timetxt">00:00 / 00:00</div>
+    <input type="range" id="scrub" class="scrub" min="0" value="0">
+    <button class="btnIcon" id="subsBtn" title="Subtitles">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16v12H4zM7 10h5M7 14h3M14 14h3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btnIcon" id="noteBtn" title="Notes">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6zM15 4v3h3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btnIcon" id="lockBtn" title="Lock">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btnIcon" id="fsBtn" title="Fullscreen">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="sheet" id="sheet">
+    <h4 style="margin:0 0 10px 0">Player Settings</h4>
+    <div class="row"><span>Speed</span>
+      <div>
+        <button class="chip" data-speed="0.5">0.5x</button>
+        <button class="chip active" data-speed="1">1x</button>
+        <button class="chip" data-speed="1.5">1.5x</button>
+        <button class="chip" data-speed="2">2x</button>
+      </div>
+    </div>
+    <div class="row"><span>Screen</span>
+      <div>
+        <button class="chip" data-fit="contain">Fit</button>
+        <button class="chip active" data-fit="cover">Fill</button>
+      </div>
+    </div>
+    <div class="row"><span>Zoom</span>
+      <div class="zoomBtns">
+        <button class="chip" id="zoomOut">−</button>
+        <button class="chip" id="zoomIn">＋</button>
+      </div>
+    </div>
+    <div class="row" style="justify-content:center;margin-top:8px">
+      <div class="vWrap">
+        <span style="text-align:center;color:#bbb">Brightness</span>
+        <input id="bright" type="range" min="0" max="100" value="100">
+      </div>
+      <div class="vWrap">
+        <span style="text-align:center;color:#bbb">Volume</span>
+        <input id="volume" type="range" min="0" max="100" value="80">
+      </div>
+    </div>
+  </div>
+
+  <button class="unlock" id="unlock">Unlock</button>
+</div>
+
+<script>
+  const qs=new URLSearchParams(location.search);
+  const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+  const TITLE=qs.get('title')||"Untitled";
+  const POSTER=qs.get('poster')||"";
+  const NEXT=qs.get('next')||""; // new param for next episode link (optional)
+
+  const wrap=document.getElementById('wrap');
+  const vid=document.getElementById('vid');
+  const dim=document.getElementById('dim');
+  const bright=document.getElementById('bright');
+  const volume=document.getElementById('volume');
+  const prog=document.getElementById('prog');
+  const scrub=document.getElementById('scrub');
+  const timetxt=document.getElementById('timetxt');
+  const pp=document.getElementById('pp');
+  const back10=document.getElementById('back10');
+  const fwd10=document.getElementById('fwd10');
+  const lockBtn=document.getElementById('lockBtn');
+  const unlockBtn=document.getElementById('unlock');
+  const gear=document.getElementById('gear');
+  const sheet=document.getElementById('sheet');
+  const fsBtn=document.getElementById('fsBtn');
+  const volBtn=document.getElementById('volBtn');
+  const fitChips=[...sheet.querySelectorAll('[data-fit]')];
+  const speedChips=[...sheet.querySelectorAll('[data-speed]')];
+  const zoomIn=document.getElementById('zoomIn');
+  const zoomOut=document.getElementById('zoomOut');
+  const titleTop=document.getElementById('titleTop');
+
+  titleTop.textContent=TITLE;
+  vid.src=SRC;
+  if(POSTER) vid.setAttribute('poster',POSTER);
+  vid.playsInline=true;
+
+  // ---------- Fit ----------
+  let fit='cover';
+  function setFit(v){fit=v;vid.style.objectFit=v;wrap.classList.toggle('fit',v==='contain');fitChips.forEach(c=>c.classList.toggle('active',c.dataset.fit===v));}
+  setFit(fit);
+  fitChips.forEach(c=>c.onclick=function(){setFit(this.dataset.fit);showUI()});
+
+  // ---------- Brightness ----------
+  bright.oninput=function(e){
+    const v=Number(e.target.value);
+    const dark=1-(v/100);
+    dim.style.background=`rgba(0,0,0,${dark})`;
     showUI();
-  </script>
+  };
+
+  // ---------- Volume ----------
+  volume.oninput=function(e){vid.volume=Number(e.target.value)/100;showUI();};
+
+  // ---------- Play / Pause ----------
+  function toggle(){
+    if(vid.paused){vid.play();pp.textContent='❙❙';}
+    else{vid.pause();pp.textContent='▶';}
+    showUI();
+  }
+  pp.onclick=toggle;
+  vid.addEventListener('click',toggle);
+  back10.onclick=function(){vid.currentTime=Math.max(0,vid.currentTime-10);showUI();};
+  fwd10.onclick=function(){vid.currentTime=Math.min(vid.duration||0,vid.currentTime+10);showUI();};
+
+  // ---------- Time / Progress ----------
+  function fmt(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
+  vid.addEventListener('timeupdate',function(){
+    const d=vid.duration||0,c=vid.currentTime||0;
+    timetxt.textContent=`${fmt(c)} / ${fmt(d)}`;
+    scrub.max=Math.max(1,d);scrub.value=c;
+    prog.style.width=`${d?(c/d)*100:0}%`;
+
+    // save progress every 5s
+    if(Math.floor(c)%5===0) localStorage.setItem('nMix_'+TITLE, c);
+  });
+  scrub.oninput=function(){vid.currentTime=Number(scrub.value);showUI();};
+
+  // ---------- Speed ----------
+  function setSpeed(v){vid.playbackRate=v;speedChips.forEach(c=>c.classList.toggle('active',Number(c.dataset.speed)===v));}
+  setSpeed(1);
+  speedChips.forEach(c=>c.onclick=function(){setSpeed(Number(this.dataset.speed));showUI();});
+
+  // ---------- Zoom ----------
+  let zoom=1;
+  function applyZoom(){zoom=Math.min(Math.max(zoom,0.6),1.5);vid.style.transform=`scale(${zoom})`;}
+  applyZoom();
+  zoomIn.onclick=()=>{zoom+=0.1;applyZoom();showUI();};
+  zoomOut.onclick=()=>{zoom-=0.1;applyZoom();showUI();};
+
+  // ---------- Fullscreen ----------
+  fsBtn.onclick=function(){
+    const el=wrap;
+    if(!document.fullscreenElement) el.requestFullscreen();
+    else document.exitFullscreen();
+  };
+
+  // ---------- Lock / Hide ----------
+  let locked=false,timer=null;
+  function showUI(){
+    if(locked)return;
+    wrap.classList.remove('hide');
+    clearTimeout(timer);
+    timer=setTimeout(()=>wrap.classList.add('hide'),4000);
+  }
+  ['mousemove','touchstart','click','keydown'].forEach(ev=>wrap.addEventListener(ev,showUI));
+  vid.addEventListener('play',showUI);
+  lockBtn.onclick=function(){locked=true;wrap.classList.add('locked');};
+  unlockBtn.onclick=function(){locked=false;wrap.classList.remove('locked');showUI();};
+  gear.onclick=function(){sheet.classList.toggle('open');};
+  volBtn.onclick=function(){vid.muted=!vid.muted;volBtn.style.opacity=vid.muted?0.5:1;};
+
+  // ---------- Resume Playback ----------
+  const saved = localStorage.getItem('nMix_'+TITLE);
+  if(saved){
+    const resume=confirm("Resume from "+fmt(saved)+" ?");
+    if(resume) vid.currentTime=parseFloat(saved);
+  }
+
+  // ---------- Auto-Next Episode ----------
+  vid.addEventListener('ended', ()=>{
+    localStorage.removeItem('nMix_'+TITLE); // clear saved progress
+    if(NEXT){
+      titleTop.textContent="Loading next episode…";
+      setTimeout(()=>location.href=NEXT,2000);
+    } else {
+      titleTop.textContent="Playback finished";
+    }
+  });
+
+  // ---------- Back Button ----------
+  document.getElementById('btnClose').addEventListener('click', ()=>{
+    if(document.referrer) window.history.back();
+    else location.href='index.html';
+  });
+
+  // ---------- AutoPlay ----------
+  vid.volume=volume.value/100;
+  vid.play().catch(()=>{});
+  showUI();
+</script>
 </body>
 </html>
