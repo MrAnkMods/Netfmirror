@@ -1,109 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
 <title>NMix — Home</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;overflow-x:hidden;}
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:#111;position:sticky;top:0;z-index:10;}
-header img{height:35px;}
-nav a{color:#fff;text-decoration:none;margin:0 10px;font-weight:bold;}
-.banner{position:relative;width:100%;height:55vh;overflow:hidden;}
-.banner img{width:100%;height:100%;object-fit:cover;filter:brightness(0.6);}
-.banner-title{position:absolute;bottom:30px;left:20px;font-size:26px;font-weight:bold;}
-section{padding:20px;}
-section h2{color:#e50914;font-size:22px;margin-bottom:12px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
-.grid img{width:100%;height:180px;object-fit:cover;border-radius:6px;cursor:pointer;transition:transform .2s;}
-.grid img:hover{transform:scale(1.05);}
-footer{text-align:center;padding:15px 0;background:#111;color:#aaa;font-size:13px;margin-top:30px;}
+  :root{--bg:#000;--card:#111;--accent:#e50914;--muted:#8a8a8a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:#fff}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(180deg,#080808,rgba(0,0,0,.6));position:sticky;top:0;z-index:40;border-bottom:1px solid #111}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .Nlogo{font-weight:900;color:var(--accent);font-size:28px;margin-right:6px}
+  .brand h1{margin:0;font-size:18px;letter-spacing:0.3px}
+  nav{display:flex;gap:18px;align-items:center}
+  nav a{color:#fff;text-decoration:none;font-weight:700;padding:8px 10px;border-radius:8px;opacity:.95}
+  nav a:hover{background:#111}
+  .profile{width:36px;height:36px;border-radius:8px;background:#222;display:grid;place-items:center;cursor:pointer}
+  .profile img{width:28px;height:28px;border-radius:6px;object-fit:cover}
+  .container{padding:14px}
+  .hero{position:relative;height:56vh;border-radius:8px;overflow:hidden;background:#000;border:1px solid #111}
+  .hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.45);transition:opacity .6s}
+  .hero .overlay{position:absolute;left:20px;bottom:26px;color:#fff;z-index:2}
+  .hero .title{font-size:28px;font-weight:800;margin-bottom:10px}
+  .hero .buttons{display:flex;gap:12px}
+  .btn{background:#fff;color:#000;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;border:none}
+  .btn.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.12)}
+  section{margin-top:22px}
+  section h2{color:var(--accent);margin:0 0 10px 4px}
+  .row{display:flex;gap:12px;overflow:auto;padding-bottom:8px}
+  .card{min-width:140px;background:transparent;border-radius:8px;overflow:hidden;cursor:pointer}
+  .card img{width:140px;height:200px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06)}
+  .card .meta{margin-top:6px;font-size:13px;color:var(--muted);text-align:center}
+  footer{padding:20px;text-align:center;color:#888;border-top:1px solid #111;margin-top:34px}
+  @media (max-width:720px){
+    .hero{height:50vh}
+    .hero .title{font-size:22px}
+    .card img{height:180px}
+  }
 </style>
 </head>
 <body>
+
 <header>
-  <img src="assets/logo.png" alt="NMix Logo">
+  <div class="brand">
+    <div class="Nlogo">N</div>
+    <div>
+      <h1>NMix</h1>
+      <div style="font-size:12px;color:#9a9a9a">AnkMods</div>
+    </div>
+  </div>
   <nav>
     <a href="index.html">Home</a>
     <a href="movie.html">Movies</a>
     <a href="series.html">Series</a>
+    <div class="profile" id="profileBtn" title="Profile">
+      <img id="profileImg" src="assets/profile.png" alt="profile"/>
+    </div>
   </nav>
 </header>
 
-<div class="banner">
-  <img id="bannerImg" src="assets/banner1.jpg">
-  <div class="banner-title" id="bannerTitle">Welcome to NMix</div>
+<div class="container">
+  <div class="hero" id="hero">
+    <img id="heroImg" src="assets/banner1.jpg" alt="banner"/>
+    <div class="overlay">
+      <div class="title" id="heroTitle">Welcome to NMix</div>
+      <div class="buttons">
+        <button class="btn" id="heroPlay">Play</button>
+        <button class="btn secondary" id="heroInfo">More Info</button>
+      </div>
+    </div>
+  </div>
+
+  <section><h2>Trending</h2><div class="row" id="trendingRow"></div></section>
+  <section><h2>Latest</h2><div class="row" id="latestRow"></div></section>
+  <section><h2>Horror</h2><div class="row" id="horrorRow"></div></section>
+  <section><h2>Adventure</h2><div class="row" id="adventureRow"></div></section>
+  <section><h2>Top 10</h2><div class="row" id="topRow"></div></section>
+  <section><h2>Love & Romance</h2><div class="row" id="romanceRow"></div></section>
+  <section><h2>Action</h2><div class="row" id="actionRow"></div></section>
+  <section><h2>Crime</h2><div class="row" id="crimeRow"></div></section>
+  <section><h2>Mystery</h2><div class="row" id="mysteryRow"></div></section>
+  <section><h2>Sci-Fi</h2><div class="row" id="scifiRow"></div></section>
+  <section><h2>Comedy</h2><div class="row" id="comedyRow"></div></section>
+  <section><h2>Thriller</h2><div class="row" id="thrillerRow"></div></section>
+
+  <footer>© 2025 NMix Studio — All Rights Reserved</footer>
 </div>
-
-<section id="trending">
-  <h2>Trending</h2>
-  <div class="grid" id="trendingGrid"></div>
-</section>
-
-<section id="latest">
-  <h2>Latest</h2>
-  <div class="grid" id="latestGrid"></div>
-</section>
-
-<section id="horror">
-  <h2>Horror</h2>
-  <div class="grid" id="horrorGrid"></div>
-</section>
-
-<section id="adventure">
-  <h2>Adventure</h2>
-  <div class="grid" id="adventureGrid"></div>
-</section>
-
-<footer>© 2025 NMix Studio — All Rights Reserved</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
-  authDomain:"ankmods0.firebaseapp.com",
-  databaseURL:"https://ankmods0-default-rtdb.firebaseio.com",
-  projectId:"ankmods0",
-  storageBucket:"ankmods0.firebasestorage.app",
-  messagingSenderId:"760044029682",
-  appId:"1:760044029682:web:a5c234e03542c309ce726b"
+const firebaseConfig = {
+  apiKey: "AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+  authDomain: "ankmods0.firebaseapp.com",
+  databaseURL: "https://ankmods0-default-rtdb.firebaseio.com",
+  projectId: "ankmods0",
+  storageBucket: "ankmods0.firebasestorage.app",
+  messagingSenderId: "760044029682",
+  appId: "1:760044029682:web:a5c234e03542c309ce726b"
 };
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-const trendingGrid=document.getElementById("trendingGrid");
-const latestGrid=document.getElementById("latestGrid");
-const horrorGrid=document.getElementById("horrorGrid");
-const adventureGrid=document.getElementById("adventureGrid");
-const bannerImg=document.getElementById("bannerImg");
-const bannerTitle=document.getElementById("bannerTitle");
+const heroImg = document.getElementById("heroImg");
+const heroTitle = document.getElementById("heroTitle");
+const heroPlay = document.getElementById("heroPlay");
 
-// ✅ Fixed movie loading
-onValue(ref(db,"movies"),snap=>{
-  trendingGrid.innerHTML=latestGrid.innerHTML=horrorGrid.innerHTML=adventureGrid.innerHTML="";
-  let banners=[];
+const sections = {
+  trending: document.getElementById("trendingRow"),
+  latest: document.getElementById("latestRow"),
+  horror: document.getElementById("horrorRow"),
+  adventure: document.getElementById("adventureRow"),
+  top10: document.getElementById("topRow"),
+  romance: document.getElementById("romanceRow"),
+  action: document.getElementById("actionRow"),
+  crime: document.getElementById("crimeRow"),
+  mystery: document.getElementById("mysteryRow"),
+  scifi: document.getElementById("scifiRow"),
+  comedy: document.getElementById("comedyRow"),
+  thriller: document.getElementById("thrillerRow")
+};
+
+let bannerItems = [];
+let allItems = {};
+
+function makeCard(id, d){
+  const c = document.createElement("div");
+  c.className = "card";
+  const img = document.createElement("img");
+  img.src = d.poster || "assets/banner1.jpg";
+  img.alt = d.title||"";
+  img.onclick = ()=> {
+    const t = d.type === "series" ? "series" : "movie";
+    window.location = `details.html?type=${t}&id=${id}`;
+  };
+  c.appendChild(img);
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = d.title || "";
+  c.appendChild(meta);
+  return c;
+}
+
+onValue(ref(db,"movies"), snap => {
+  Object.values(sections).forEach(row => row.innerHTML = "");
+  bannerItems = [];
+
   snap.forEach(s=>{
-    const id=s.key;const d=s.val();
-    const img=document.createElement("img");
-    img.src=d.poster || "assets/banner1.jpg";
-    img.onclick=()=>window.location=`details.html?type=movie&id=${id}`;
-    if(d.category==="Trending")trendingGrid.appendChild(img);
-    if(d.category==="Latest")latestGrid.appendChild(img);
-    if(d.category==="Horror")horrorGrid.appendChild(img);
-    if(d.category==="Adventure")adventureGrid.appendChild(img);
-    if(d.banner)banners.push({title:d.title,img:d.banner});
+    const id = s.key;
+    const d = s.val();
+    d.type = d.type || "movie";
+    allItems[id] = d;
+
+    const cat = (d.category || d.section || "").toLowerCase();
+
+    if(d.banner) bannerItems.push({id, ...d});
+
+    if(cat.includes("trending")) sections.trending.appendChild(makeCard(id,d));
+    else if(cat.includes("latest")) sections.latest.appendChild(makeCard(id,d));
+    else if(cat.includes("horror")) sections.horror.appendChild(makeCard(id,d));
+    else if(cat.includes("adventure")) sections.adventure.appendChild(makeCard(id,d));
+    else if(cat.includes("top")) sections.top10.appendChild(makeCard(id,d));
+    else if(cat.includes("romance") || cat.includes("love")) sections.romance.appendChild(makeCard(id,d));
+    else if(cat.includes("action")) sections.action.appendChild(makeCard(id,d));
+    else if(cat.includes("crime")) sections.crime.appendChild(makeCard(id,d));
+    else if(cat.includes("mystery")) sections.mystery.appendChild(makeCard(id,d));
+    else if(cat.includes("sci")) sections.scifi.appendChild(makeCard(id,d));
+    else if(cat.includes("comedy")) sections.comedy.appendChild(makeCard(id,d));
+    else if(cat.includes("thriller")) sections.thriller.appendChild(makeCard(id,d));
   });
-  if(banners.length){
-    let i=0;setInterval(()=>{
-      bannerImg.src=banners[i].img;
-      bannerTitle.textContent=banners[i].title;
-      i=(i+1)%banners.length;
-    },4000);
+
+  // banner rotation
+  if(bannerItems.length===0){
+    bannerItems = Object.keys(allItems).slice(0,4).map(k=>({id:k, ...allItems[k]}));
   }
+  if(bannerItems.length){
+    let i = 0;
+    heroImg.src = bannerItems[0].banner || bannerItems[0].poster || "assets/banner1.jpg";
+    heroTitle.textContent = bannerItems[0].title || "Welcome to NMix";
+    heroPlay.onclick = ()=> window.location = `details.html?type=movie&id=${bannerItems[0].id}`;
+    setInterval(()=>{
+      i = (i+1) % bannerItems.length;
+      heroImg.style.opacity = 0;
+      setTimeout(()=>{
+        heroImg.src = bannerItems[i].banner || bannerItems[i].poster || "assets/banner1.jpg";
+        heroTitle.textContent = bannerItems[i].title || "";
+        heroPlay.onclick = ()=> window.location = `details.html?type=movie&id=${bannerItems[i].id}`;
+        heroImg.style.opacity = 1;
+      },300);
+    }, 4500);
+  }
+});
+
+onValue(ref(db,"series"), snap=>{
+  snap.forEach(s=>{
+    const id = s.key;
+    const d = s.val();
+    d.type = "series";
+    const cat = (d.category || d.section || "").toLowerCase();
+    if(cat.includes("latest")) sections.latest.appendChild(makeCard(id,d));
+    else if(cat.includes("trending")) sections.trending.appendChild(makeCard(id,d));
+    else if(cat.includes("romance") || cat.includes("love")) sections.romance.appendChild(makeCard(id,d));
+    else if(cat.includes("crime")) sections.crime.appendChild(makeCard(id,d));
+    else if(cat.includes("mystery")) sections.mystery.appendChild(makeCard(id,d));
+    else if(cat.includes("sci")) sections.scifi.appendChild(makeCard(id,d));
+    else sections.latest.appendChild(makeCard(id,d));
+  });
 });
 </script>
 </body>
