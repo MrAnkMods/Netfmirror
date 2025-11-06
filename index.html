@@ -38,22 +38,22 @@ footer{text-align:center;padding:15px 0;background:#111;color:#aaa;font-size:13p
 </div>
 
 <section id="trending">
-  <h2>🔥 Trending</h2>
+  <h2>Trending</h2>
   <div class="grid" id="trendingGrid"></div>
 </section>
 
 <section id="latest">
-  <h2>🆕 Latest</h2>
+  <h2>Latest</h2>
   <div class="grid" id="latestGrid"></div>
 </section>
 
 <section id="horror">
-  <h2>👻 Horror</h2>
+  <h2>Horror</h2>
   <div class="grid" id="horrorGrid"></div>
 </section>
 
 <section id="adventure">
-  <h2>🗺 Adventure</h2>
+  <h2>Adventure</h2>
   <div class="grid" id="adventureGrid"></div>
 </section>
 
@@ -82,19 +82,19 @@ const adventureGrid=document.getElementById("adventureGrid");
 const bannerImg=document.getElementById("bannerImg");
 const bannerTitle=document.getElementById("bannerTitle");
 
-// Load Movies
+// ✅ Fixed movie loading
 onValue(ref(db,"movies"),snap=>{
   trendingGrid.innerHTML=latestGrid.innerHTML=horrorGrid.innerHTML=adventureGrid.innerHTML="";
   let banners=[];
   snap.forEach(s=>{
     const id=s.key;const d=s.val();
     const img=document.createElement("img");
-    img.src=d.poster;
+    img.src=d.poster || "assets/banner1.jpg";
     img.onclick=()=>window.location=`details.html?type=movie&id=${id}`;
-    if(d.section==="Trending")trendingGrid.appendChild(img);
-    if(d.section==="Latest")latestGrid.appendChild(img);
-    if(d.section==="Horror")horrorGrid.appendChild(img);
-    if(d.section==="Adventure")adventureGrid.appendChild(img);
+    if(d.category==="Trending")trendingGrid.appendChild(img);
+    if(d.category==="Latest")latestGrid.appendChild(img);
+    if(d.category==="Horror")horrorGrid.appendChild(img);
+    if(d.category==="Adventure")adventureGrid.appendChild(img);
     if(d.banner)banners.push({title:d.title,img:d.banner});
   });
   if(banners.length){
