@@ -1,152 +1,147 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
 <title>NMix — Details</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;}
-.banner{position:relative;width:100%;height:55vh;overflow:hidden;}
-.banner img{width:100%;height:100%;object-fit:cover;filter:brightness(0.6);}
-.content{padding:20px;}
-h1{font-size:28px;margin:10px 0;color:#fff;}
-p{font-size:15px;color:#ccc;line-height:1.5;}
-button{padding:10px 20px;border:none;border-radius:6px;margin:6px 8px;cursor:pointer;font-weight:bold;}
-.play{background:#e50914;color:#fff;}
-.download{background:#222;color:#fff;}
-.back{position:absolute;top:15px;left:15px;background:rgba(0,0,0,0.5);border:none;padding:10px 14px;border-radius:50%;cursor:pointer;}
-.back svg{width:22px;height:22px;stroke:#fff;}
-.more-section{padding:20px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
-.grid img{width:100%;border-radius:6px;cursor:pointer;object-fit:cover;height:180px;}
-select{background:#111;color:#fff;padding:6px 10px;border:none;border-radius:4px;}
-.episodes{margin-top:10px;}
-.ep-item{background:#111;padding:8px 10px;border-radius:6px;margin:5px 0;cursor:pointer;}
-.ep-item:hover{background:#222;}
+  body{margin:0;background:#000;color:#fff;font-family:Inter,Arial;line-height:1.4}
+  .wrap{padding:12px}
+  .back{display:inline-block;padding:8px 10px;background:#111;border-radius:8px;cursor:pointer;margin-bottom:12px}
+  .hero{display:flex;gap:14px;align-items:flex-start}
+  .poster{width:150px;height:220px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06)}
+  h1{margin:2px 0 8px 0;font-size:22px}
+  .meta{color:#9a9a9a;margin-bottom:12px}
+  .btn{padding:10px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+  .btn.primary{background:#fff;color:#000;margin-right:10px}
+  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,.12);color:#fff}
+  .episodes{margin-top:18px}
+  .season{margin-top:10px;border-top:1px solid #111;padding-top:10px}
+  .ep{background:#111;padding:10px;border-radius:8px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
+  .related{margin-top:18px}
+  .row{display:flex;gap:12px;overflow:auto;padding-bottom:6px}
+  .card{min-width:120px}
+  .card img{width:120px;height:160px;object-fit:cover;border-radius:8px}
 </style>
 </head>
 <body>
-
-<div class="banner">
-  <button class="back" onclick="history.back()">
-    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-  <img id="banner" src="">
-</div>
-
-<div class="content">
-  <h1 id="title">Loading...</h1>
-  <p id="desc"></p>
-  <div id="movieActions">
-    <button class="play" id="playBtn">▶ Play</button>
-    <button class="download" id="downloadBtn">⬇ Download</button>
-  </div>
-
-  <div id="seriesActions" style="display:none;">
-    <select id="seasonSelect"></select>
-    <div class="episodes" id="episodes"></div>
-  </div>
-</div>
-
-<div class="more-section">
-  <h2>More Like This</h2>
-  <div class="grid" id="moreGrid"></div>
-</div>
-
-<script type="module">
+<div class="wrap">
+  <div class="back" id="backBtn">← Back</div>  <div id="mainArea"></div>
+</div><script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
-  authDomain:"ankmods0.firebaseapp.com",
-  databaseURL:"https://ankmods0-default-rtdb.firebaseio.com",
-  projectId:"ankmods0",
-  storageBucket:"ankmods0.firebasestorage.app",
-  messagingSenderId:"760044029682",
-  appId:"1:760044029682:web:a5c234e03542c309ce726b"
+const firebaseConfig = {
+  apiKey: "AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+  authDomain: "ankmods0.firebaseapp.com",
+  databaseURL: "https://ankmods0-default-rtdb.firebaseio.com",
+  projectId: "ankmods0",
+  storageBucket: "ankmods0.firebasestorage.app",
+  messagingSenderId: "760044029682",
+  appId: "1:760044029682:web:a5c234e03542c309ce726b"
 };
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-const params=new URLSearchParams(location.search);
-const id=params.get("id");
-const type=params.get("type"); // 'movie' or 'series'
+const params = new URLSearchParams(location.search);
+const type = params.get("type") || "movie";
+const id = params.get("id");
 
-const titleEl=document.getElementById("title");
-const descEl=document.getElementById("desc");
-const bannerEl=document.getElementById("banner");
-const playBtn=document.getElementById("playBtn");
-const downloadBtn=document.getElementById("downloadBtn");
-const movieActions=document.getElementById("movieActions");
-const seriesActions=document.getElementById("seriesActions");
-const seasonSelect=document.getElementById("seasonSelect");
-const episodesDiv=document.getElementById("episodes");
-const moreGrid=document.getElementById("moreGrid");
+const main = document.getElementById("mainArea");
+const backBtn = document.getElementById("backBtn");
+backBtn.onclick = ()=>{
+  if (document.referrer) return window.history.back();
+  location.href = "index.html";
+};
 
-let contentData=null;
+if(!id){ main.innerHTML = "<p>No item specified.</p>"; }
+else {
+  const node = type === "series" ? "series" : "movies";
+  onValue(ref(db, node + "/" + id), snap=>{
+    const d = snap.val();
+    if(!d){ main.innerHTML = "<p>Item not found.</p>"; return; }
 
-if(type==="movie"){
-  onValue(ref(db,"movies/"+id),snap=>{
-    const d=snap.val();if(!d)return;
-    contentData=d;
-    titleEl.textContent=d.title;
-    descEl.textContent=d.desc||"No description.";
-    bannerEl.src=d.banner||d.poster;
-    playBtn.onclick=()=>window.location=`player.html?src=${encodeURIComponent(d.video)}&title=${encodeURIComponent(d.title)}`;
-    downloadBtn.onclick=()=>window.open(d.video,"_blank");
-    loadMore(d.section,id);
-  });
-}else{
-  onValue(ref(db,"series/"+id),snap=>{
-    const d=snap.val();if(!d)return;
-    contentData=d;
-    titleEl.textContent=d.title;
-    descEl.textContent=d.desc||"No description.";
-    bannerEl.src=d.banner||d.poster;
-    movieActions.style.display="none";
-    seriesActions.style.display="block";
-    seasonSelect.innerHTML="";
-    d.seasons.forEach((s,i)=>{
-      const opt=document.createElement("option");
-      opt.value=i;opt.textContent=s.season;
-      seasonSelect.appendChild(opt);
+    let html = `
+      <div class="hero">
+        <img class="poster" src="${d.poster||'assets/banner1.jpg'}" />
+        <div style="flex:1">
+          <h1>${d.title||''}</h1>
+          <div class="meta">${d.category || d.section || ''} • ${d.year||''}</div>
+          <div>
+            <button class="btn primary" id="playBtn">▶ Play</button>
+            <button class="btn secondary" id="downloadBtn">⬇ Download</button>
+          </div>
+          <p style="margin-top:12px;color:#bbb">${d.description || ''}</p>
+        </div>
+      </div>
+    `;
+
+    if(type === "series"){
+      html += `<div class="episodes"><h3>Seasons & Episodes</h3>`;
+      (d.seasons || []).forEach((s, idx)=>{
+        html += `<div class="season"><strong>${s.season || 'Season '+(idx+1)}</strong>`;
+        s.episodes.forEach((ep, eidx)=>{
+          html += `<div class="ep"><div>${ep.epTitle||('Episode '+(eidx+1))}</div>
+                   <div><button class="btn primary epPlay" data-video="${encodeURIComponent(ep.video||'')}">Play</button></div></div>`;
+        });
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `<div class="related"><h3>More Like This</h3><div class="row" id="relatedRow"></div></div>`;
+    main.innerHTML = html;
+
+    // Movie Play button — popup-free + smooth fade
+    document.getElementById("playBtn").onclick = ()=>{
+      if(!d.video){ alert("No video available"); return; }
+      document.body.style.opacity = "0.6";
+      document.body.style.pointerEvents = "none";
+
+      setTimeout(()=>{
+        const unique = Date.now();  
+        const videoUrl = `${d.video}?session=${unique}`;
+        const playerUrl = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(d.title||'')}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
+        window.location = playerUrl;
+      }, 200);
+    };
+
+    // Download button
+    document.getElementById("downloadBtn").onclick = ()=>{
+      if(!d.video){ alert("No video URL available"); return; }
+      window.open(d.video, "_blank");
+    };
+
+    // Episode play buttons
+    document.querySelectorAll(".epPlay").forEach(b=>{
+      b.onclick = (ev)=>{
+        let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
+        if(v) v += `?session=${Date.now()}`;
+        const titleEp = (d.title||'') + ' - ' + (ev.currentTarget.closest(".ep").querySelector("div").innerText || 'Episode');
+        const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(titleEp)}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
+        window.location = playerUrl;
+      };
     });
-    seasonSelect.onchange=()=>loadEpisodes(seasonSelect.value);
-    loadEpisodes(0);
-    loadMore(d.section,id);
-  });
-}
 
-function loadEpisodes(i){
-  const s=contentData.seasons[i];
-  episodesDiv.innerHTML="";
-  s.episodes.forEach(ep=>{
-    const div=document.createElement("div");
-    div.className="ep-item";
-    div.textContent=ep.title;
-    div.onclick=()=>window.location=`player.html?src=${encodeURIComponent(ep.video)}&title=${encodeURIComponent(ep.title)}`;
-    episodesDiv.appendChild(div);
-  });
-}
-
-function loadMore(category,skipId){
-  onValue(ref(db,"movies"),snap=>{
-    moreGrid.innerHTML="";
-    snap.forEach(s=>{
-      const d=s.val(),id=s.key;
-      if(id===skipId)return;
-      if(d.section===category){
-        const img=document.createElement("img");
-        img.src=d.poster;
-        img.onclick=()=>window.location=`details.html?type=movie&id=${id}`;
-        moreGrid.appendChild(img);
-      }
+    // Related section
+    onValue(ref(db, "movies"), s2=>{
+      const rel = document.getElementById("relatedRow");
+      rel.innerHTML = "";
+      s2.forEach(x=>{
+        const val = x.val();
+        if(val && val.category && d.category && val.category === d.category && x.key !== id){
+          const card = document.createElement("div");
+          card.className = "card";
+          const img = document.createElement("img");
+          img.src = val.poster;
+          img.onclick = ()=> window.location = `details.html?type=movie&id=${x.key}`;
+          card.appendChild(img);
+          rel.appendChild(card);
+        }
+      });
     });
   });
 }
-</script>
-</body>
+</script></body>
 </html>
