@@ -93,31 +93,46 @@ else {
     html += `<div class="related"><h3>More Like This</h3><div class="row" id="relatedRow"></div></div>`;
     main.innerHTML = html;
 
-    // Movie Play button — popup-free + smooth fade
-    document.getElementById("playBtn").onclick = ()=>{
-      if(!d.video){ alert("No video available"); return; }
-      document.body.style.opacity = "0.6";
+    const playBtn = document.getElementById("playBtn");
+
+    // Handle main Play button logic
+    playBtn.onclick = ()=>{
+      let videoUrl = "";
+      let titleTxt = d.title || "";
+
+      if(type === "movie" && d.video){
+        videoUrl = d.video;
+      } else if(type === "series" && d.seasons && d.seasons.length > 0){
+        const firstEp = d.seasons[0].episodes && d.seasons[0].episodes[0];
+        if(firstEp && firstEp.video){
+          videoUrl = firstEp.video;
+          titleTxt += " — " + (firstEp.epTitle || "Episode 1");
+        }
+      }
+
+      if(!videoUrl){ alert("No video URL available"); return; }
+
+      document.body.style.opacity = "0.7";
       document.body.style.pointerEvents = "none";
 
       setTimeout(()=>{
-        const unique = Date.now();  
-        const videoUrl = `${d.video}?session=${unique}`;
-        const playerUrl = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(d.title||'')}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
-        window.location = playerUrl;
-      }, 200);
+        const url = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
+        window.location = url;
+      },200);
     };
 
     // Download button
     document.getElementById("downloadBtn").onclick = ()=>{
-      if(!d.video){ alert("No video URL available"); return; }
-      window.open(d.video, "_blank");
+      const v = d.video || (d.seasons?.[0]?.episodes?.[0]?.video);
+      if(!v){ alert("No video URL available"); return; }
+      window.open(v, "_blank");
     };
 
-    // Episode play buttons
+    // Individual episode play
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
-        if(v) v += `?session=${Date.now()}`;
+        if(!v){ alert("No video URL"); return; }
         const titleEp = (d.title||'') + ' - ' + (ev.currentTarget.closest(".ep").querySelector("div").innerText || 'Episode');
         const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(titleEp)}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
         window.location = playerUrl;
