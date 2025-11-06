@@ -1,158 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NMix – Movies & Series</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
-<style>
-  body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;overflow-x:hidden;}
-
-  /* Splash */
-  #splash{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;
-    flex-direction:column;z-index:9999;transition:opacity 1s ease;}
-  #splash.hidden{opacity:0;pointer-events:none;}
-  .logo{font-size:70px;font-weight:900;color:#e50914;text-shadow:0 0 20px #e50914,0 0 40px #b00610;
-    animation:fadein 2s ease-in-out forwards;}
-  @keyframes fadein{from{opacity:0;transform:scale(.6);}to{opacity:1;transform:scale(1);}}
-  .loader{width:120px;height:4px;background:#333;margin-top:14px;overflow:hidden;border-radius:3px;}
-  .loader span{display:block;width:0;height:100%;background:#e50914;animation:load 3s forwards;}
-  @keyframes load{to{width:100%;}}
-
-  header{display:flex;align-items:center;justify-content:space-between;background:#111;padding:12px 14px;position:sticky;top:0;}
-  header h1{color:#e50914;font-weight:bold;margin:0;}
-  .search-bar{display:flex;align-items:center;background:#1b1b1b;border-radius:20px;padding:6px 10px;flex:1;margin-left:12px;}
-  .search-bar input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;}
-  .search-bar svg{width:20px;height:20px;fill:#aaa;margin-right:6px;}
-
-  .banner{position:relative;width:100%;height:260px;overflow:hidden;}
-  .banner img{width:100%;height:100%;object-fit:cover;filter:brightness(70%);}
-  .banner .info{position:absolute;bottom:20px;left:20px;}
-  .banner h2{margin:0 0 8px;font-size:22px;}
-  .banner button{background:#e50914;border:none;padding:8px 16px;border-radius:6px;color:#fff;cursor:pointer;}
-
-  .section{margin:16px 0;}
-  .section h2{font-size:18px;margin:10px 18px;}
-  .scroll-row{display:flex;overflow-x:auto;gap:10px;padding:0 16px 6px;scrollbar-width:none;}
-  .scroll-row::-webkit-scrollbar{display:none;}
-  .card{min-width:140px;background:#141414;border-radius:8px;overflow:hidden;cursor:pointer;transition:.25s;}
-  .card:hover{transform:scale(1.06);}
-  .card img{width:100%;height:200px;object-fit:cover;}
-  .card h4{margin:6px;text-align:center;font-size:13px;}
-  .loading{text-align:center;margin-top:80px;color:#777;}
-</style>
+  <meta charset="UTF-8">
+  <title>NMix — Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root{--brand:#e50914;--bg:#000;--text:#fff;--muted:#bbb}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#0d0d0d;position:sticky;top:0;z-index:5}
+    header img{height:38px}
+    nav a{color:#fff;text-decoration:none;margin:0 10px;font-size:15px}
+    .banner{position:relative;aspect-ratio:16/9;overflow:hidden}
+    .banner img{width:100%;height:100%;object-fit:cover;filter:brightness(.85)}
+    .banner .overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.2));display:flex;flex-direction:column;justify-content:flex-end;padding:18px}
+    .banner h1{margin:0;font-size:24px}
+    .banner button{margin-top:10px;padding:10px 18px;border:none;border-radius:6px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    section{padding:18px 14px}
+    h2{font-size:20px;margin-bottom:10px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .card{background:#111;border-radius:8px;overflow:hidden;cursor:pointer;transition:.3s}
+    .card:hover{transform:scale(1.03)}
+    .card img{width:100%;aspect-ratio:2/3;object-fit:cover;background:#0b0b0b}
+    .card .cap{padding:8px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    footer{padding:20px;text-align:center;color:var(--muted);font-size:13px;border-top:1px solid rgba(255,255,255,.1)}
+    @media(min-width:800px){.grid{grid-template-columns:repeat(6,1fr)}}
+  </style>
 </head>
 <body>
+  <header>
+    <img src="assets/logo.png" alt="NMix Logo">
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="movie.html">Movies</a>
+      <a href="series.html">Series</a>
+    </nav>
+  </header>
 
-<div id="splash">
-  <div class="logo">NMix</div>
-  <div class="loader"><span></span></div>
-  <audio id="introSound" src="assets/splash.mp3"></audio>
-</div>
-
-<header>
-  <h1>🎬 NMix</h1>
-  <div class="search-bar">
-    <svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 015.293 13.707l5 5-1.414 1.414-5-5A8 8 0 1110 2zm0 2a6 6 0 100 12 6 6 0 000-12z"/></svg>
-    <input id="search" type="text" placeholder="Search Movies or Series...">
+  <!-- Banner -->
+  <div class="banner" id="mainBanner">
+    <img id="bannerImg" alt="Banner">
+    <div class="overlay">
+      <h1 id="bannerTitle">Loading...</h1>
+      <button id="bannerPlay">Play</button>
+    </div>
   </div>
-</header>
 
-<div class="banner" id="banner">
-  <img id="bannerImg" src="assets/banner1.jpg" alt="">
-  <div class="info">
-    <h2 id="bannerTitle">Loading...</h2>
-    <button id="watchNow">Watch Now</button>
-  </div>
-</div>
+  <!-- Latest -->
+  <section>
+    <h2>Latest Releases</h2>
+    <div class="grid" id="latestGrid"></div>
+  </section>
 
-<div id="content"></div>
-<div class="loading" id="loading">Loading content...</div>
+  <!-- Trending -->
+  <section>
+    <h2>Trending Now</h2>
+    <div class="grid" id="trendingGrid"></div>
+  </section>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+  <!-- Top 10 -->
+  <section>
+    <h2>Top 10</h2>
+    <div class="grid" id="topGrid"></div>
+  </section>
 
-const firebaseConfig={
-  apiKey:"AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
-  authDomain:"ankmods0.firebaseapp.com",
-  databaseURL:"https://ankmods0-default-rtdb.firebaseio.com",
-  projectId:"ankmods0",
-  storageBucket:"ankmods0.firebasestorage.app",
-  messagingSenderId:"760044029682",
-  appId:"1:760044029682:web:a5c234e03542c309ce726b"
-};
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
+  <footer>© 2025 NMix Entertainment</footer>
 
-// Splash
-window.addEventListener('load',()=>{
-  const sound=document.getElementById('introSound');
-  setTimeout(()=>sound.play().catch(()=>{}),600);
-  setTimeout(()=>document.getElementById('splash').classList.add('hidden'),3000);
-});
+  <!-- Firebase & Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-const cats=["Horror","Mystery","Adventure","Latest","Trending","Top 10"];
-const content=document.getElementById("content");
-const search=document.getElementById("search");
-const bannerImg=document.getElementById("bannerImg");
-const bannerTitle=document.getElementById("bannerTitle");
-const watchNow=document.getElementById("watchNow");
-const loading=document.getElementById("loading");
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+      authDomain: "ankmods0.firebaseapp.com",
+      databaseURL: "https://ankmods0-default-rtdb.firebaseio.com",
+      projectId: "ankmods0",
+      storageBucket: "ankmods0.firebasestorage.app",
+      messagingSenderId: "760044029682",
+      appId: "1:760044029682:web:a5c234e03542c309ce726b",
+      measurementId: "G-HRTZJS4YVW"
+    };
 
-let allMovies=[],allSeries=[],bannerList=[],bIndex=0;
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-onValue(ref(db,"movies"),snap=>{allMovies=[];snap.forEach(s=>allMovies.push({id:s.key,...s.val()}));update();});
-onValue(ref(db,"series"),snap=>{allSeries=[];snap.forEach(s=>allSeries.push({id:s.key,...s.val()}));update();});
+    const latestGrid = document.getElementById('latestGrid');
+    const trendingGrid = document.getElementById('trendingGrid');
+    const topGrid = document.getElementById('topGrid');
+    const bannerImg = document.getElementById('bannerImg');
+    const bannerTitle = document.getElementById('bannerTitle');
+    const bannerPlay = document.getElementById('bannerPlay');
+    let bannerData = null;
 
-function update(){if(allMovies.length||allSeries.length){loading.style.display="none";buildSections();setupBanner();}}
+    const makeCard = (id, m, type='movie') => {
+      const div = document.createElement('a');
+      div.className = 'card';
+      div.href = `details.html?type=${type}&id=${id}`;
+      div.innerHTML = `
+        <img src="${m.poster || m.banner || ''}">
+        <div class="cap">${m.title || 'Untitled'}</div>
+      `;
+      return div;
+    };
 
-function buildSections(q=""){
-  content.innerHTML="";
-  let m=allMovies,s=allSeries;
-  if(q){
-    q=q.toLowerCase();
-    m=m.filter(x=>x.title.toLowerCase().includes(q));
-    s=s.filter(x=>x.title.toLowerCase().includes(q));
-  }
-  cats.forEach(cat=>{
-    const sec=document.createElement("div");sec.className="section";
-    const h=document.createElement("h2");h.textContent=cat;
-    const row=document.createElement("div");row.className="scroll-row";
-    const items=[...m.filter(x=>x.category===cat),...s.filter(x=>x.category===cat)];
-    items.forEach(item=>{
-      const card=document.createElement("div");card.className="card";
-      card.innerHTML=`<img src="${item.poster}"><h4>${item.title}</h4>`;
-      card.onclick=()=>openItem(item);
-      row.appendChild(card);
+    function loadMovies(section, container){
+      onValue(ref(db, 'movies'), snap=>{
+        container.innerHTML = '';
+        const data = snap.val() || {};
+        Object.entries(data).forEach(([id,m])=>{
+          if(m.section === section) container.appendChild(makeCard(id,m,'movie'));
+        });
+      });
+    }
+
+    // Banner (Random featured)
+    onValue(ref(db,'movies'), snap=>{
+      const data = Object.entries(snap.val()||{});
+      if(data.length===0) return;
+      const [id,m] = data[Math.floor(Math.random()*data.length)];
+      bannerData = {id,m};
+      bannerImg.src = m.banner || m.poster || '';
+      bannerTitle.textContent = m.title || 'Untitled';
     });
-    if(row.children.length){sec.appendChild(h);sec.appendChild(row);content.appendChild(sec);}
-  });
-}
-search.oninput=()=>buildSections(search.value.trim());
+    bannerPlay.onclick = ()=>{ if(bannerData) location.href=`details.html?type=movie&id=${bannerData.id}`; };
 
-function setupBanner(){
-  bannerList=[...allMovies.filter(x=>x.category==="Top 10"||x.category==="Trending"),
-              ...allSeries.filter(x=>x.category==="Top 10"||x.category==="Trending")];
-  if(!bannerList.length)return;
-  showBanner();
-  setInterval(()=>{bIndex=(bIndex+1)%bannerList.length;showBanner();},5000);
-}
-function showBanner(){
-  const item=bannerList[bIndex];
-  bannerImg.src=item.poster;
-  bannerTitle.textContent=item.title;
-  watchNow.onclick=()=>openItem(item);
-}
-
-function openItem(item){
-  if(item.video){ // Movie
-    location.href=`movie.html?id=${item.id}`;
-  }else if(item.seasons){ // Series
-    location.href=`series.html?id=${item.id}`;
-  }
-}
-</script>
+    // Load all sections
+    loadMovies('Latest', latestGrid);
+    loadMovies('Trending', trendingGrid);
+    loadMovies('Top10', topGrid);
+  </script>
 </body>
 </html>

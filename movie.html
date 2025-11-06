@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NMix — Movies</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root{--bg:#000;--text:#fff;--card:#141414}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+    header{display:flex;align-items:center;justify-content:space-between;padding:14px;background:#0d0d0d;position:sticky;top:0;z-index:5}
+    header h1{font-size:20px;margin:0}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px}
+    .card{background:var(--card);border-radius:10px;overflow:hidden;cursor:pointer;transition:.3s}
+    .card:hover{transform:scale(1.03)}
+    .card img{width:100%;aspect-ratio:2/3;object-fit:cover}
+    .card .cap{padding:8px;font-size:13px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @media(min-width:800px){.grid{grid-template-columns:repeat(6,1fr)}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Movies</h1>
+    <button onclick="location.href='index.html'" style="background:none;border:none;color:#fff;font-size:18px;">🏠</button>
+  </header>
+
+  <div class="grid" id="moviesGrid"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+      authDomain: "ankmods0.firebaseapp.com",
+      databaseURL: "https://ankmods0-default-rtdb.firebaseio.com",
+      projectId: "ankmods0",
+      storageBucket: "ankmods0.firebasestorage.app",
+      messagingSenderId: "760044029682",
+      appId: "1:760044029682:web:a5c234e03542c309ce726b",
+      measurementId: "G-HRTZJS4YVW"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const moviesGrid = document.getElementById('moviesGrid');
+
+    onValue(ref(db,'movies'), snap=>{
+      moviesGrid.innerHTML='';
+      const data = snap.val() || {};
+      Object.entries(data).forEach(([id,m])=>{
+        const a=document.createElement('a');
+        a.href=`details.html?type=movie&id=${id}`;
+        a.className='card';
+        a.innerHTML=`
+          <img src="${m.poster||m.banner||''}">
+          <div class="cap">${m.title||'Untitled'}</div>
+        `;
+        moviesGrid.appendChild(a);
+      });
+    });
+  </script>
+</body>
+</html>

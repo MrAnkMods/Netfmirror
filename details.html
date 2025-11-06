@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NMix — Details</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{--brand:#e50914;--text:#fff;--muted:#b3b3b3;--bg:#0f0f0f;--card:#181818;--chip:#262626}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:#000;color:var(--text);font-family:Arial,Helvetica,sans-serif}
+
+    /* Header */
+    .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;
+         padding:12px 14px;background:linear-gradient(180deg,rgba(0,0,0,.8),rgba(0,0,0,0))}
+    .btn{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;
+         background:rgba(28,28,28,.7);border:1px solid rgba(255,255,255,.08);cursor:pointer}
+    .title{font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Banner */
+    .banner{position:relative;aspect-ratio:16/9;max-height:58vh;background:#111;overflow:hidden}
+    .banner img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.93)}
+    .playCircle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+                width:84px;height:84px;border-radius:50%;background:rgba(0,0,0,.55);
+                border:2px solid rgba(255,255,255,.35);display:grid;place-items:center;cursor:pointer}
+    .tagRow{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.14);color:#fff;padding:6px 9px;border-radius:999px;font-size:12px}
+
+    /* Body */
+    .wrap{padding:14px}
+    .h1{font-size:22px;margin:2px 0 8px 0}
+    .meta{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+    .desc{color:#ddd;line-height:1.6;margin:8px 0 14px}
+
+    .primaryBtn,.secondaryBtn{
+      width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+      padding:12px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:700
+    }
+    .primaryBtn{background:var(--text);color:#000}
+    .secondaryBtn{margin-top:10px;background:#2c2c2c;color:#fff}
+
+    /* Seasons + Episodes (series only) */
+    .panel{margin-top:18px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden}
+    .panelHead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .select{background:#101010;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:8px 10px}
+    .episodes{display:grid;grid-template-columns:1fr;gap:8px;padding:12px}
+    .ep{display:flex;gap:10px;align-items:center;background:#121212;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px}
+    .ep img{width:120px;height:70px;border-radius:8px;object-fit:cover;background:#0b0b0b}
+    .epInfo{flex:1}
+    .epTitle{font-size:15px;margin:0 0 4px 0}
+    .epMeta{font-size:12px;color:var(--muted)}
+    .epPlay{border:0;background:var(--brand);color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer}
+
+    /* More like this */
+    .section{margin-top:18px}
+    .section h3{margin:0 0 12px 0}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .card{background:#0f0f0f;border-radius:10px;border:1px solid rgba(255,255,255,.06);overflow:hidden;cursor:pointer}
+    .card img{width:100%;aspect-ratio:2/3;object-fit:cover;background:#0b0b0b;display:block}
+    .card .cap{padding:8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    @media(min-width:800px){
+      .grid{grid-template-columns:repeat(6,1fr)}
+      .wrap{padding:18px 24px}
+    }
+    a{color:inherit;text-decoration:none}
+    .hide{display:none}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="top">
+    <button class="btn" id="backBtn" title="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="title" id="headerTitle">Loading…</div>
+  </div>
+
+  <!-- Banner -->
+  <div class="banner" id="bannerBox">
+    <img id="bannerImg" alt="Banner"/>
+    <button class="playCircle" id="bannerPlay" title="Play">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="tagRow" id="tagRow"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="wrap">
+    <h1 class="h1" id="title">Loading…</h1>
+    <div class="meta" id="meta"></div>
+    <div class="desc" id="desc"></div>
+
+    <button class="primaryBtn" id="playBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#000"><path d="M8 5v14l11-7z"/></svg>
+      Play
+    </button>
+    <a class="secondaryBtn" id="dlBtn" href="#" target="_blank" rel="noopener">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download
+    </a>
+
+    <!-- Series controls -->
+    <div class="panel hide" id="seriesPanel">
+      <div class="panelHead">
+        <strong>Episodes</strong>
+        <select id="seasonSelect" class="select"></select>
+      </div>
+      <div class="episodes" id="episodes"></div>
+    </div>
+
+    <!-- More like this -->
+    <div class="section">
+      <h3>More Like This</h3>
+      <div class="grid" id="moreGrid"></div>
+      <div id="noMore" class="muted hide">No similar items found.</div>
+    </div>
+  </div>
+
+  <!-- Firebase + logic -->
+  <script type="module">
+    // ---------- Query params ----------
+    const q = new URLSearchParams(location.search);
+    const type  = q.get('type') || 'movie';   // 'movie' | 'series'
+    const id    = q.get('id');                // Firebase key
+    if(!id){ alert('Missing id'); }
+
+    // ---------- UI refs ----------
+    const backBtn = document.getElementById('backBtn');
+    const headerTitle = document.getElementById('headerTitle');
+    const bannerImg = document.getElementById('bannerImg');
+    const bannerPlay = document.getElementById('bannerPlay');
+    const tagRow = document.getElementById('tagRow');
+    const titleEl = document.getElementById('title');
+    const metaEl = document.getElementById('meta');
+    const descEl = document.getElementById('desc');
+    const playBtn = document.getElementById('playBtn');
+    const dlBtn = document.getElementById('dlBtn');
+    const seriesPanel = document.getElementById('seriesPanel');
+    const seasonSelect = document.getElementById('seasonSelect');
+    const episodesBox = document.getElementById('episodes');
+    const moreGrid = document.getElementById('moreGrid');
+    const noMore = document.getElementById('noMore');
+
+    backBtn.onclick = () => { history.length > 1 ? history.back() : location.href = (type==='movie' ? 'movie.html' : 'series.html'); };
+
+    // ---------- Firebase v9 (modular) ----------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, child, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
+      authDomain: "ankmods0.firebaseapp.com",
+      databaseURL: "https://ankmods0-default-rtdb.firebaseio.com",
+      projectId: "ankmods0",
+      storageBucket: "ankmods0.firebasestorage.app",
+      messagingSenderId: "760044029682",
+      appId: "1:760044029682:web:a5c234e03542c309ce726b",
+      measurementId: "G-HRTZJS4YVW"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Helpers
+    const byPath = (...parts) => ref(db, parts.join('/'));
+    const safe = (v, d='') => v ?? d;
+    const toChips = (arr) => (Array.isArray(arr) ? arr : (arr ? [arr] : []));
+
+    // ---------- Load core item ----------
+    const rootPath = (type === 'movie') ? 'movies' : 'series';
+    const snap = await get(child(byPath(), `${rootPath}/${id}`));
+    if(!snap.exists()){
+      headerTitle.textContent = 'Not found';
+      titleEl.textContent = 'Not found';
+      alert('Item not found');
+    }
+    const item = snap.val();
+
+    // Populate banner/title/desc/meta
+    headerTitle.textContent = safe(item.title, 'Untitled');
+    titleEl.textContent = safe(item.title, 'Untitled');
+
+    const metaBits = [];
+    if(item.year) metaBits.push(item.year);
+    if(type==='movie' && item.duration) metaBits.push(item.duration);
+    if(type==='series' && item.seasons) metaBits.push(Object.keys(item.seasons).length + ' Seasons');
+    metaEl.textContent = metaBits.join(' • ');
+
+    descEl.textContent = safe(item.description, '');
+
+    bannerImg.src = safe(item.banner, safe(item.poster, ''));
+    // tags: languages + first category(s)
+    [...toChips(item.languages), ...toChips(item.category || item.categories)].slice(0,5).forEach(tag=>{
+      const b = document.createElement('span'); b.className='chip'; b.textContent = tag; tagRow.appendChild(b);
+    });
+
+    // ---------- Play + Download (movie default) ----------
+    function openPlayer(src, title, poster){
+      if(!src){ alert('Video not available'); return; }
+      const url = `player.html?src=${encodeURIComponent(src)}&title=${encodeURIComponent(title || item.title || 'Untitled')}&poster=${encodeURIComponent(poster || item.poster || '')}`;
+      location.href = url;
+    }
+
+    playBtn.onclick = () => {
+      if(type==='movie') openPlayer(item.videoUrl, item.title, item.poster);
+    };
+    bannerPlay.onclick = playBtn.onclick;
+
+    if(item.downloadUrl){ dlBtn.href = item.downloadUrl; dlBtn.classList.remove('hide'); }
+    else { dlBtn.classList.add('hide'); }
+
+    // ---------- Series: seasons + episodes ----------
+    if(type === 'series'){
+      seriesPanel.classList.remove('hide');
+
+      const seasons = item.seasons || {};
+      const seasonKeys = Object.keys(seasons).sort((a,b)=> Number(a)-Number(b));
+
+      // Fill selector
+      seasonKeys.forEach(sk=>{
+        const opt = document.createElement('option');
+        opt.value = sk; opt.textContent = `Season ${sk}`;
+        seasonSelect.appendChild(opt);
+      });
+
+      const renderSeason = (sk) => {
+        episodesBox.innerHTML = '';
+        const eps = (seasons[sk] && seasons[sk].episodes) ? seasons[sk].episodes : {};
+        const epList = Object.values(eps).sort((a,b)=> (a.number||0)-(b.number||0));
+        epList.forEach(ep=>{
+          const card = document.createElement('div'); card.className='ep';
+          const img = document.createElement('img'); img.src = ep.thumb || item.poster || '';
+          const info = document.createElement('div'); info.className='epInfo';
+          const t = document.createElement('div'); t.className='epTitle'; t.textContent = `${ep.number ? 'E'+ep.number+': ' : ''}${ep.title || 'Episode'}`;
+          const m = document.createElement('div'); m.className='epMeta'; m.textContent = ep.duration ? ep.duration : '';
+          info.appendChild(t); info.appendChild(m);
+          const btn = document.createElement('button'); btn.className='epPlay'; btn.textContent='Play';
+          btn.onclick = () => openPlayer(ep.videoUrl, `${item.title} — S${sk}E${ep.number}: ${ep.title||''}`, item.poster);
+          card.appendChild(img); card.appendChild(info); card.appendChild(btn);
+          episodesBox.appendChild(card);
+        });
+
+        // When pressing main Play on a series, play first ep of selected season
+        playBtn.onclick = () => {
+          if(epList.length===0){ alert('No episodes'); return; }
+          const ep = epList[0];
+          openPlayer(ep.videoUrl, `${item.title} — S${sk}E${ep.number}: ${ep.title||''}`, item.poster);
+        };
+        bannerPlay.onclick = playBtn.onclick;
+      };
+
+      const initial = seasonKeys[0] || '1';
+      seasonSelect.value = initial;
+      renderSeason(initial);
+
+      seasonSelect.onchange = (e)=> renderSeason(e.target.value);
+    }
+
+    // ---------- More like this ----------
+    async function loadMore() {
+      // use first category available
+      const cats = toChips(item.category || item.categories);
+      const keyCat = cats.length ? cats[0] : null;
+
+      // Prefer movies for "More like this"
+      const ms = await get(child(byPath(),'movies'));
+      if(!ms.exists()){ noMore.classList.remove('hide'); return; }
+      const all = Object.entries(ms.val() || {}).map(([k,v])=>({id:k,...v}));
+      const filtered = keyCat ? all.filter(m => toChips(m.category || m.categories).includes(keyCat)) : all;
+      const picks = filtered.filter(m => m.id !== id).sort(()=>Math.random()-0.5).slice(0,12);
+
+      if(picks.length===0){ noMore.classList.remove('hide'); return; }
+
+      picks.forEach(m=>{
+        const a = document.createElement('a'); a.className='card'; a.href = `details.html?type=movie&id=${encodeURIComponent(m.id)}`;
+        const img = document.createElement('img'); img.src = m.poster || m.banner || '';
+        const cap = document.createElement('div'); cap.className='cap'; cap.textContent = m.title || 'Untitled';
+        a.appendChild(img); a.appendChild(cap);
+        moreGrid.appendChild(a);
+      });
+    }
+    loadMore();
+  </script>
+</body>
+</html>
