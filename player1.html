@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Player</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no" />
+<style>
+:root{--brand:#e50914;--stroke:#3a3a3a;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;background:#000;overflow:hidden}
+body{font-family:Arial,Helvetica,sans-serif;color:#fff}
+.wrap{position:fixed;inset:0;background:#000}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .25s}
+video.show{opacity:1}
+
+/* Loader */
+.loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;background:#000}
+.spinner{width:70px;height:70px;border-radius:50%;border:6px solid rgba(255,255,255,.18);border-top-color:#e50914;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loadText{color:#e50914;font-weight:bold}
+
+/* Top bar */
+.topBar{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:5;transition:opacity .3s}
+.btnIcon{width:44px;height:44px;border-radius:12px;background:rgba(20,20,20,.55);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.titleTop{flex:1;text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Center controls */
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:60px;align-items:center;z-index:5;transition:opacity .3s}
+.round{width:70px;height:70px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer}
+.pp svg{width:54px;height:54px}
+
+/* Progress bar */
+.progress{position:absolute;left:12px;right:12px;bottom:90px;height:6px;background:#333;border-radius:6px;overflow:hidden;z-index:5}
+.progress>span{display:block;height:100%;width:0;background:var(--brand)}
+
+/* Bottom row */
+.bottom{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:22px;z-index:5;transition:opacity .3s}
+.menuBtn{display:flex;align-items:center;gap:6px;font-size:14px;color:#fff;background:transparent;border:none;cursor:pointer}
+.menuBtn svg{width:22px;height:22px;fill:#fff}
+
+/* Unlock button */
+.unlockBtn{
+  position:absolute;left:50%;bottom:50px;transform:translateX(-50%);
+  background:rgba(20,20,20,.7);border:1px solid #3a3a3a;border-radius:20px;
+  padding:12px 20px;color:#fff;display:none;z-index:10;
+  font-weight:600;cursor:pointer;
+  backdrop-filter:blur(6px);
+}
+
+/* Hide when inactive */
+.hide .topBar,.hide .center,.hide .progress,.hide .bottom{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="loader" id="loader"><div class="spinner"></div><div class="loadText">Loading...</div></div>
+  <video id="vid" playsinline preload="metadata"></video>
+
+  <!-- top -->
+  <div class="topBar" id="topBar">
+    <div class="btnIcon" id="btnBack"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="titleTop" id="titleTop">Loading…</div>
+    <div class="btnIcon" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+  </div>
+
+  <!-- center -->
+  <div class="center" id="center">
+    <div class="round" id="back10"><svg viewBox="0 0 24 24"><path d="M12 6V3L7 7l5 4V8a6 6 0 1 1-6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+    <div class="round pp" id="pp"><svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg></div>
+    <div class="round" id="fwd10"><svg viewBox="0 0 24 24"><path d="M12 6V3l5 4-5 4V8a6 6 0 1 0 6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+  </div>
+
+  <!-- progress -->
+  <div class="progress"><span id="prog"></span></div>
+
+  <!-- bottom -->
+  <div class="bottom" id="bottom">
+    <button class="menuBtn" id="speedBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" fill="none"/></svg><span id="speedLabel">1x</span></button>
+    <button class="menuBtn" id="lockBtn"><svg id="lockIcon" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none"/></svg>Lock</button>
+    <button class="menuBtn" id="episodesBtn" style="display:none"><svg viewBox="0 0 24 24"><path d="M3 6h18v4H3zM3 14h18v4H3z" stroke="#fff" stroke-width="2" fill="none"/></svg>Episodes</button>
+    <button class="menuBtn" id="subBtn"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z" stroke="#fff" stroke-width="2" fill="none"/></svg>Audio & Subtitles</button>
+    <button class="menuBtn" id="nextBtn" style="display:none"><svg viewBox="0 0 24 24"><path d="M5 7v10l8-5-8-5zM17 7v10" stroke="#fff" stroke-width="2" fill="none"/></svg>Next Ep.</button>
+    <button class="menuBtn" id="zoomBtn"><svg viewBox="0 0 24 24"><path d="M15 15h4v4M9 9H5V5M9 15H5v4M15 9h4V5" stroke="#fff" stroke-width="2" fill="none"/></svg>Zoom</button>
+  </div>
+
+  <!-- unlock -->
+  <button class="unlockBtn" id="unlockBtn">Unlock</button>
+</div>
+
+<script>
+const qs=new URLSearchParams(location.search);
+const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+const TITLE=qs.get('title')||"Untitled";
+const TYPE=qs.get('type')||"movie";
+
+const wrap=document.getElementById('wrap');
+const vid=document.getElementById('vid');
+const loader=document.getElementById('loader');
+const prog=document.getElementById('prog');
+const pp=document.getElementById('pp');
+const speedBtn=document.getElementById('speedBtn');
+const speedLabel=document.getElementById('speedLabel');
+const lockBtn=document.getElementById('lockBtn');
+const lockIcon=document.getElementById('lockIcon');
+const unlockBtn=document.getElementById('unlockBtn');
+const fsBtn=document.getElementById('fsBtn');
+const episodesBtn=document.getElementById('episodesBtn');
+const nextBtn=document.getElementById('nextBtn');
+const zoomBtn=document.getElementById('zoomBtn');
+
+document.getElementById('titleTop').textContent=TITLE;
+vid.src=SRC;
+if(TYPE==="series"){episodesBtn.style.display="inline-flex";nextBtn.style.display="inline-flex";}
+
+/* Loader hide */
+vid.addEventListener('canplay',()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});});
+
+/* Play/Pause */
+function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
+function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
+pp.onclick=toggle;vid.onclick=toggle;
+document.getElementById('back10').onclick=()=>{vid.currentTime=Math.max(0,vid.currentTime-10);showUI();}
+document.getElementById('fwd10').onclick=()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);showUI();}
+
+/* Progress */
+vid.addEventListener('timeupdate',()=>{const d=vid.duration||0,c=vid.currentTime||0;prog.style.width=`${(c/d)*100}%`;});
+
+/* Speed */
+let speeds=[0.5,1,1.5,2];let si=1;
+speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();}
+
+/* Lock + Unlock Control */
+let locked=false;
+lockBtn.onclick=()=>{
+  locked=true;
+  wrap.classList.add('hide');
+  unlockBtn.style.display='block';
+};
+unlockBtn.onclick=()=>{
+  locked=false;
+  wrap.classList.remove('hide');
+  unlockBtn.style.display='none';
+  showUI();
+};
+
+/* Zoom (fit ↔ fill) */
+let fitMode=true;
+zoomBtn.onclick=()=>{
+  fitMode=!fitMode;
+  vid.style.objectFit=fitMode?'contain':'cover';
+  showUI();
+};
+
+/* Fullscreen Toggle */
+fsBtn.onclick=()=>{
+  if(!document.fullscreenElement){wrap.requestFullscreen().catch(()=>{});}
+  else{document.exitFullscreen?.();}
+  showUI();
+};
+
+/* Auto-hide Controls */
+let timer;
+function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
+['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
+showUI();
+
+/* Episodes / Next */
+episodesBtn.onclick=()=>alert("Episodes list open (to be linked)");
+nextBtn.onclick=()=>alert("Next Episode playing...");
+
+/* Back */
+document.getElementById('btnBack').onclick=()=>history.back();
+</script>
+</body>
+</html>
