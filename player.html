@@ -3,198 +3,471 @@
 <head>
 <meta charset="utf-8" />
 <title>NMix — Player</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,interactive-widget=resizes-content" />
 <style>
-:root{--brand:#e50914;--glass:rgba(20,20,20,.55);--stroke:#3a3a3a;}
-*{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;width:100%;background:#000;overflow:hidden;}
-body{font-family:Arial,Helvetica,sans-serif;color:#fff;touch-action:none;}
-.wrap{position:fixed;inset:0;background:#000;}
-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .3s;}
-.fit video{object-fit:contain;}
-.dim{position:absolute;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .2s;z-index:2;}
+  :root{--brand:#e50914;--glass:rgba(20,20,20,.55);--stroke:#3a3a3a}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  /* Full black canvas */
+  body{
+    margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
+    overflow:hidden; /* stop extra line / scrolling */
+    touch-action:none; /* allow custom gestures */
+  }
+  .wrap{position:fixed;inset:0;background:#000}
 
-.topBar{
-position:absolute;top:env(safe-area-inset-top,10px);left:12px;right:12px;
-display:flex;justify-content:space-between;align-items:center;
-z-index:6;opacity:1;transition:opacity .3s ease;
-}
-.btnIcon{
-width:44px;height:44px;border-radius:12px;background:rgba(20,20,20,.55);
-border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;
-backdrop-filter:blur(6px);cursor:pointer;
-}
-.titleTop{
-flex:1;text-align:center;margin:0 12px;padding:8px 14px;border-radius:12px;
-background:rgba(20,20,20,.55);border:1px solid var(--stroke);
-font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-box-shadow:0 4px 14px rgba(0,0,0,.3);
-}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .25s}
+  .fit video{object-fit:contain}
 
-.center{
-position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-display:flex;align-items:center;justify-content:center;gap:80px;z-index:5;
-transition:opacity .3s ease;opacity:1;
-}
-.round{
-width:70px;height:70px;border-radius:50%;
-border:2px solid rgba(255,255,255,.35);
-background:rgba(0,0,0,.35);
-display:flex;align-items:center;justify-content:center;
-cursor:pointer;transition:transform .2s;
-}
-.round:active{transform:scale(.95);}
-.pp svg{width:56px;height:56px;}
+  .dim{position:absolute;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .15s;z-index:2}
 
-.progress{
-position:absolute;left:12px;right:12px;bottom:64px;height:4px;
-background:#4b4b4b;border-radius:4px;overflow:hidden;z-index:5;
-}
-.progress>span{display:block;height:100%;width:0;background:var(--brand);transition:width .2s linear;}
+  /* ===== Loader (center: spinner + text) ===== */
+  .loaderWrap{
+    position:absolute;inset:0;background:#000; /* pure black under video feel */
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    gap:14px;z-index:99;opacity:1;transition:opacity .28s ease;
+  }
+  .loaderWrap.hidden{opacity:0;pointer-events:none;}
+  .spinner{
+    width:78px;height:78px;border-radius:50%;
+    border:6px solid rgba(255,255,255,.18);border-top-color:#e50914;
+    animation:spin 1s linear infinite;
+  }
+  .loadText{font-weight:800;letter-spacing:.3px;color:#eee}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-.bottom{
-position:absolute;left:0;right:0;bottom:8px;
-padding:6px 14px 10px;z-index:5;
-display:grid;grid-template-columns:42px 130px 1fr 42px;align-items:center;gap:14px;
-transition:opacity .3s ease;opacity:1;
-}
-.time{font-size:14px;}
-.scrub{width:100%;height:6px;background:#6b6b6b;border-radius:6px;appearance:none;outline:none;}
-.scrub::-webkit-slider-thumb{appearance:none;width:0;height:0;}
-.icon{width:26px;height:26px;fill:#fff;}
+  /* Top bar */
+  .topBar{
+    position:absolute;top:env(safe-area-inset-top,10px);left:10px;right:10px;z-index:6;
+    display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:10px
+  }
+  .closeX,.btnIcon{
+    width:42px;height:42px;border-radius:12px;background:rgba(20,20,20,.55);
+    border:1px solid var(--stroke);display:grid;place-items:center;backdrop-filter:blur(6px);cursor:pointer
+  }
+  .titleTop{
+    justify-self:center;max-width:70vw;padding:8px 14px;border-radius:12px;background:rgba(20,20,20,.55);
+    border:1px solid var(--stroke);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    box-shadow:0 4px 14px rgba(0,0,0,.35)
+  }
 
-.hide .topBar,.hide .center,.hide .progress,.hide .bottom{opacity:0;pointer-events:none;}
-.locked .topBar,.locked .center,.locked .progress,.locked .bottom{opacity:0;pointer-events:none;}
+  /* Center controls (Netflix-like) */
+  .center{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    display:flex;align-items:center;justify-content:center;gap:64px;z-index:5
+  }
+  .round{
+    width:72px;height:72px;border-radius:50%;
+    border:2px solid rgba(255,255,255,.35);
+    background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.2));
+    display:grid;place-items:center;cursor:pointer;transition:transform .2s,opacity .2s
+  }
+  .round:active{transform:scale(.96)}
+  .pp{font-size:0;line-height:0}
+  .pp svg{width:54px;height:54px}
 
-.unlock{
-position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,8px) + 40px);
-transform:translateX(-50%);
-background:rgba(20,20,20,.7);border:1px solid var(--stroke);
-border-radius:50%;padding:14px;display:none;opacity:0;transition:opacity .4s ease;
-z-index:7;cursor:pointer;
-}
-.unlock.show{display:block;opacity:1;}
-.unlock svg{width:28px;height:28px;}
+  /* Progress + bottom bar */
+  .progress{position:absolute;left:12px;right:12px;bottom:66px;height:4px;background:#4b4b4b;border-radius:4px;overflow:hidden;z-index:5}
+  .progress>span{display:block;height:100%;width:0;background:var(--brand)}
+  .bottom{
+    position:absolute;left:0;right:0;bottom:8px;z-index:5;padding:6px 12px 10px;
+    display:grid;grid-template-columns:42px 132px 1fr repeat(4,42px);gap:12px;align-items:center
+  }
+  .time{font-size:14px;text-align:left}
+  .scrub{width:100%;height:6px;appearance:none;background:#6b6b6b;border-radius:6px;outline:none}
+  .scrub::-webkit-slider-thumb{appearance:none;width:0;height:0}
+  .icon{width:26px;height:26px;fill:#fff}
 
-/* EDGE CONTROLS */
-.edge{position:absolute;top:0;bottom:0;width:35%;z-index:4;}
-.edge.left{left:0;}.edge.right{right:0;}
-.edgePanel{
-position:absolute;top:50%;transform:translateY(-50%);
-width:64px;padding:10px 8px;border-radius:16px;
-background:rgba(20,20,20,.75);border:1px solid #333;
-backdrop-filter:blur(10px);
-display:flex;flex-direction:column;align-items:center;justify-content:center;
-opacity:0;transition:opacity .3s ease;
-}
-.edge.show .edgePanel{opacity:1;}
-.edgeLabel{font-size:13px;color:#ccc;margin-bottom:8px;text-align:center;}
-.vSlider{
-writing-mode:bt-lr;-webkit-appearance:slider-vertical;
-width:18px;height:180px;accent-color:#fff;background:#222;
-border:none;border-radius:10px;outline:none;
-}
-.edge.left .edgePanel{left:20px;}
-.edge.right .edgePanel{right:20px;}
+  /* Settings sheet */
+  .sheet{
+    position:absolute;right:84px;top:50%;transform:translateY(-50%);
+    background:rgba(15,15,15,.96);border:1px solid #2f2f2f;border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.55);
+    width:300px;padding:16px;color:#eee;z-index:7;display:none
+  }
+  .sheet.open{display:block}
+  .row{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
+  .chip{padding:7px 11px;border:1px solid #3b3b3b;border-radius:10px;background:#191919;color:#fff;cursor:pointer}
+  .chip.active{border-color:#fff;background:#242424}
+  .zoomBtns .chip{min-width:40px;text-align:center}
+
+  /* Hide/Lock */
+  .hide .topBar,.hide .gear,.hide .center,.hide .progress,.hide .bottom,.hide .sheet{opacity:0;pointer-events:none;transition:opacity .25s}
+  .locked .topBar,.locked .gear,.locked .center,.locked .progress,.locked .bottom,.locked .sheet{opacity:0;pointer-events:none;transition:opacity .25s}
+  .unlock{
+    position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,8px) + 16px);transform:translateX(-50%);
+    background:rgba(20,20,20,.75);border:1px solid var(--stroke);color:#fff;border-radius:16px;padding:10px 14px;
+    display:none;z-index:7;backdrop-filter:blur(6px);cursor:pointer
+  }
+  .locked .unlock{display:block}
+
+  /* Side controls (gesture + fade-in) */
+  .edge{
+    position:absolute;top:0;bottom:0;width:34%;z-index:4;pointer-events:auto
+  }
+  .edge.left{left:0}
+  .edge.right{right:0}
+  .edgePanel{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:58px;padding:10px;border-radius:16px;background:rgba(20,20,20,.72);
+    border:1px solid #333;backdrop-filter:blur(6px);
+    display:none; /* show on gesture/tap */
+  }
+  .edge.left .edgePanel{left:12px}
+  .edge.right .edgePanel{right:12px}
+  .edgeLabel{font-size:12px;color:#bbb;text-align:center;margin-bottom:6px}
+  .vSlider{
+    writing-mode:bt-lr;-webkit-appearance:slider-vertical;width:25px;height:160px;
+    accent-color:#fff;background:#222;border:none;border-radius:10px
+  }
+  .edge.show .edgePanel{display:block}
+
+  @media (max-width:740px){
+    .center{gap:48px}
+    .round{width:62px;height:62px}
+    .pp svg{width:48px;height:48px}
+    .bottom{grid-template-columns:42px 118px 1fr repeat(4,42px)}
+  }
 </style>
-
 </head>
 <body>
 <div class="wrap" id="wrap">
   <video id="vid" playsinline preload="metadata"></video>
   <div class="dim" id="dim"></div>
 
+  <!-- Loader Overlay -->
+  <div class="loaderWrap" id="loader">
+    <div class="spinner"></div>
+    <div class="loadText">Loading…</div>
+  </div>
+
+  <!-- Top bar -->
   <div class="topBar">
-    <button class="btnIcon" id="btnClose">
+    <button class="closeX" id="btnClose" aria-label="Close">
       <svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
     </button>
     <div class="titleTop" id="titleTop">Loading…</div>
-    <button class="btnIcon" id="lockBtn">
-      <svg class="icon" id="lockIcon" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    <button class="btnIcon" id="gear" aria-label="Settings">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zM4 12h2m12 0h2M12 4v2m0 12v2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
     </button>
   </div>
 
+  <!-- Center controls -->
   <div class="center">
-    <button class="round" id="back10"><svg class="icon" viewBox="0 0 24 24"><path d="M12 6V3L7 7l5 4V8a6 6 0 1 1-6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <button class="round pp" id="pp"><svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg></button>
-    <button class="round" id="fwd10"><svg class="icon" viewBox="0 0 24 24"><path d="M12 6V3l5 4-5 4V8a6 6 0 1 0 6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="round" id="back10" title="-10s" aria-label="Back 10 seconds">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 6V3L7 7l5 4V8a6 6 0 1 1-6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="round pp" id="pp" title="Play/Pause" aria-label="Play/Pause">
+      <svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>
+    </button>
+    <button class="round" id="fwd10" title="+10s" aria-label="Forward 10 seconds">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 6V3l5 4-5 4V8a6 6 0 1 0 6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
 
+  <!-- Progress + bottom controls -->
   <div class="progress"><span id="prog"></span></div>
 
   <div class="bottom">
-    <button class="btnIcon" id="volBtn"><svg class="icon" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4H4z" fill="#fff"/></svg></button>
+    <button class="btnIcon" id="volBtn" title="Mute/Unmute" aria-label="Mute/Unmute">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4H4z" fill="#fff"/></svg>
+    </button>
     <div class="time" id="timetxt">00:00 / 00:00</div>
-    <input type="range" id="scrub" class="scrub" min="0" value="0">
-    <button class="btnIcon" id="fsBtn"><svg class="icon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>
+    <input type="range" id="scrub" class="scrub" min="0" value="0" aria-label="Seek">
+    <button class="btnIcon" id="subsBtn" title="Subtitles" aria-label="Subtitles">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16v12H4zM7 10h5M7 14h3M14 14h3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btnIcon" id="noteBtn" title="Notes" aria-label="Notes">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M6 4h9l3 3v13H6zM15 4v3h3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btnIcon" id="lockBtn" title="Lock" aria-label="Lock">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btnIcon" id="fsBtn" title="Fullscreen" aria-label="Fullscreen">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
   </div>
 
-  <div class="unlock" id="unlock"><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
-
-  <!-- Brightness / Volume -->
-  <div class="edge left" id="edgeLeft">
-    <div class="edgePanel">
-      <div class="edgeLabel">Brightness</div>
-      <input id="bright" type="range" min="0" max="100" value="100" class="vSlider">
+  <!-- Settings -->
+  <div class="sheet" id="sheet">
+    <h4 style="margin:0 0 10px 0">Player Settings</h4>
+    <div class="row"><span>Speed</span>
+      <div>
+        <button class="chip" data-speed="0.5">0.5x</button>
+        <button class="chip active" data-speed="1">1x</button>
+        <button class="chip" data-speed="1.5">1.5x</button>
+        <button class="chip" data-speed="2">2x</button>
+      </div>
+    </div>
+    <div class="row"><span>Screen</span>
+      <div>
+        <button class="chip" data-fit="contain">Fit</button>
+        <button class="chip active" data-fit="cover">Fill</button>
+      </div>
+    </div>
+    <div class="row"><span>Zoom</span>
+      <div class="zoomBtns">
+        <button class="chip" id="zoomOut">−</button>
+        <button class="chip" id="zoomIn">＋</button>
+      </div>
     </div>
   </div>
-  <div class="edge right" id="edgeRight">
+
+  <!-- Unlock pill -->
+  <button class="unlock" id="unlock" aria-label="Unlock Control">
+  <svg class="icon" viewBox="0 0 24 24">
+    <path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </svg>
+</button>
+
+  <!-- Side gesture panels -->
+  <div class="edge left" id="edgeLeft" aria-hidden="true">
+    <div class="edgePanel">
+      <div class="edgeLabel">Brightness</div>
+      <input id="bright" type="range" min="0" max="100" value="100" class="vSlider" aria-label="Brightness"/>
+    </div>
+  </div>
+  <div class="edge right" id="edgeRight" aria-hidden="true">
     <div class="edgePanel">
       <div class="edgeLabel">Volume</div>
-      <input id="volume" type="range" min="0" max="100" value="80" class="vSlider">
+      <input id="volume" type="range" min="0" max="100" value="80" class="vSlider" aria-label="Volume"/>
+    </div>
+  </div>
+
+  <!-- Resume modal -->
+  <div class="modal" id="resumeModal" aria-hidden="true">
+    <div class="modalCard">
+      <div class="modalBody">
+        <p class="modalTitle">Continue watching?</p>
+        <p class="modalText" id="resumeText">Resume from 00:00</p>
+      </div>
+      <div class="modalBtns">
+        <button class="btnIOS primary" id="resumeYes">Continue</button>
+        <button class="btnIOS secondary" id="resumeRestart">Start Over</button>
+        <button class="btnIOS ghost" id="resumeCancel">Cancel</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-const qs=new URLSearchParams(location.search);
-const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
-const TITLE=qs.get('title')||"Untitled";
-const PREV=qs.get('prev')||"";
-const vid=document.getElementById('vid'),wrap=document.getElementById('wrap');
-const prog=document.getElementById('prog'),scrub=document.getElementById('scrub');
-const timetxt=document.getElementById('timetxt'),pp=document.getElementById('pp');
-const lockBtn=document.getElementById('lockBtn'),unlockBtn=document.getElementById('unlock');
-const lockIcon=document.getElementById('lockIcon'),volBtn=document.getElementById('volBtn');
-const bright=document.getElementById('bright'),volume=document.getElementById('volume');
-const dim=document.getElementById('dim'),edgeLeft=document.getElementById('edgeLeft'),edgeRight=document.getElementById('edgeRight');
+  /* ------------ Params ------------ */
+  const qs=new URLSearchParams(location.search);
+  const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+  const TITLE=qs.get('title')||"Untitled";
+  const POSTER=qs.get('poster')||"";
+  const PREV=qs.get('prev')||"";
 
-document.getElementById('titleTop').textContent=TITLE;
-vid.src=SRC;vid.playsInline=true;
+  /* ------------ Elements ------------ */
+  const wrap=document.getElementById('wrap');
+  const vid=document.getElementById('vid');
+  const dim=document.getElementById('dim');
+  const loader=document.getElementById('loader');
+  const prog=document.getElementById('prog');
+  const scrub=document.getElementById('scrub');
+  const timetxt=document.getElementById('timetxt');
+  const pp=document.getElementById('pp');
+  const back10=document.getElementById('back10');
+  const fwd10=document.getElementById('fwd10');
+  const lockBtn=document.getElementById('lockBtn');
+  const unlockBtn=document.getElementById('unlock');
+  const gear=document.getElementById('gear');
+  const sheet=document.getElementById('sheet');
+  const fsBtn=document.getElementById('fsBtn');
+  const volBtn=document.getElementById('volBtn');
+  const fitChips=()=>[...sheet.querySelectorAll('[data-fit]')];
+  const speedChips=()=>[...sheet.querySelectorAll('[data-speed]')];
 
-function fmt(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return`${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
-vid.addEventListener('timeupdate',()=>{const d=vid.duration||0,c=vid.currentTime||0;timetxt.textContent=`${fmt(c)} / ${fmt(d)}`;scrub.max=d;scrub.value=c;prog.style.width=`${(c/d)*100}%`;});
-scrub.oninput=()=>vid.currentTime=Number(scrub.value);
+  const edgeLeft=document.getElementById('edgeLeft');
+  const edgeRight=document.getElementById('edgeRight');
+  const bright=document.getElementById('bright');
+  const volume=document.getElementById('volume');
 
-function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
-function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
-pp.onclick=toggle;vid.onclick=toggle;
-document.getElementById('back10').onclick=()=>vid.currentTime=Math.max(0,vid.currentTime-10);
-document.getElementById('fwd10').onclick=()=>vid.currentTime=Math.min(vid.duration,vid.currentTime+10);
+  const resumeModal=document.getElementById('resumeModal');
+  const resumeText=document.getElementById('resumeText');
+  const resumeYes=document.getElementById('resumeYes');
+  const resumeRestart=document.getElementById('resumeRestart');
+  const resumeCancel=document.getElementById('resumeCancel');
 
-let hTimer;function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(hTimer);hTimer=setTimeout(()=>wrap.classList.add('hide'),2500);}
-['mousemove','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
+  document.getElementById('titleTop').textContent=TITLE;
+  vid.src=SRC; if(POSTER) vid.setAttribute('poster',POSTER); vid.playsInline=true;
 
-let locked=false;
-lockBtn.onclick=()=>{locked=!locked;
-if(locked){wrap.classList.add('locked');lockIcon.innerHTML='<path d="M6 11h12v9H6zM12 4a4 4 0 0 1 4 4v3H8V8a4 4 0 0 1 4-4z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>';unlockBtn.classList.add('show');}
-else{wrap.classList.remove('locked');lockIcon.innerHTML='<path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>';unlockBtn.classList.remove('show');showUI();}
-};
-unlockBtn.onclick=()=>{locked=false;wrap.classList.remove('locked');unlockBtn.classList.remove('show');lockIcon.innerHTML='<path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>';showUI();};
+  /* ------------ Loader helpers ------------ */
+  const showLoader=()=>{ loader.classList.remove('hidden'); };
+  const hideLoader=()=>{ loader.classList.add('hidden'); };
 
-function applyBrightness(v){const dark=(1-(v/100))*0.6;dim.style.background=`rgba(0,0,0,${dark})`;}
-bright.oninput=e=>applyBrightness(e.target.value);
-volume.oninput=e=>vid.volume=e.target.value/100;
+  vid.addEventListener('loadstart',showLoader);
+  vid.addEventListener('waiting',showLoader);
+  vid.addEventListener('stalled',showLoader);
+  vid.addEventListener('canplay',hideLoader);
+  vid.addEventListener('playing',hideLoader);
+  vid.addEventListener('error',hideLoader);
 
-function showEdge(s){clearTimeout(eTimer);(s==='l'?edgeLeft:edgeRight).classList.add('show');eTimer=setTimeout(()=>{edgeLeft.classList.remove('show');edgeRight.classList.remove('show');},1000);}
-let eTimer=null,gSide=null,startY=0,startVal=0;
-wrap.addEventListener('touchstart',e=>{const x=e.touches[0].clientX,w=innerWidth;gSide=x<w*.35?'l':(x>w*.65?'r':null);startY=e.touches[0].clientY;startVal=gSide==='l'?+bright.value:+volume.value;if(gSide)showEdge(gSide);});
-wrap.addEventListener('touchmove',e=>{if(!gSide)return;const y=e.touches[0].clientY;const d=(startY-y)/3;let v=Math.max(0,Math.min(100,startVal+d));if(gSide==='l'){bright.value=v;applyBrightness(v);}else{volume.value=v;vid.volume=v/100;}showEdge(gSide);e.preventDefault();});
-wrap.addEventListener('touchend',()=>gSide=null);
+  /* ------------ Fullscreen helpers ------------ */
+  async function goFullscreen() {
+    const el=wrap;
+    try{
+      if(document.fullscreenEnabled && !document.fullscreenElement){ await el.requestFullscreen(); }
+    }catch(_){}
+  }
+  // Try on first tap
+  wrap.addEventListener('click',()=>goFullscreen(),{once:true});
 
-document.getElementById('btnClose').onclick=()=>{if(PREV)location.href=decodeURIComponent(PREV);else history.back();};
-document.getElementById('fsBtn').onclick=()=>{if(!document.fullscreenElement)wrap.requestFullscreen();else document.exitFullscreen();};
-vid.addEventListener('loadedmetadata',()=>{vid.volume=volume.value/100;vid.play().catch(()=>setPPIcon(true));});
+  /* ------------ Fit & Speed ------------ */
+  let fit='cover';
+  function setFit(v){
+    fit=v; vid.style.objectFit=v; wrap.classList.toggle('fit', v==='contain');
+    fitChips().forEach(c=>c.classList.toggle('active', c.dataset.fit===v));
+  }
+  setFit(fit);
+  fitChips().forEach(c=>c.onclick=function(){setFit(this.dataset.fit); showUI();});
+
+  function setSpeed(v){
+    vid.playbackRate=v;
+    speedChips().forEach(c=>c.classList.toggle('active', Number(c.dataset.speed)===v));
+  }
+  setSpeed(1);
+  speedChips().forEach(c=>c.onclick=function(){setSpeed(Number(this.dataset.speed)); showUI();});
+
+  /* ------------ Brightness & Volume (sliders + gestures) ------------ */
+  function applyBrightness(val){
+    const dark=(1-(val/100))*0.6; /* never fully black */
+    dim.style.background=`rgba(0,0,0,${dark})`;
+  }
+  bright.addEventListener('input', e=>{ applyBrightness(Number(e.target.value)); showUI(true); });
+  volume.addEventListener('input', e=>{ vid.volume=Number(e.target.value)/100; showUI(true); });
+
+  // Edge show/hide helpers
+  let edgeTimer=null;
+  function showEdge(side){
+    clearTimeout(edgeTimer);
+    if(side==='left') edgeLeft.classList.add('show'); else edgeRight.classList.add('show');
+    edgeTimer=setTimeout(()=>{ edgeLeft.classList.remove('show'); edgeRight.classList.remove('show'); }, 1200);
+  }
+
+  // Gestures: vertical swipe on left -> brightness, right -> volume
+  let gSide=null, startY=0, startVal=0;
+  function touchStart(e){
+    const t=e.touches?e.touches[0]:e;
+    const x=t.clientX, w=window.innerWidth;
+    gSide = x < w*0.34 ? 'left' : (x > w*0.66 ? 'right' : null);
+    if(!gSide) return;
+    startY=t.clientY;
+    startVal = gSide==='left' ? Number(bright.value) : Number(volume.value);
+    showEdge(gSide);
+  }
+  function touchMove(e){
+    if(!gSide) return;
+    const t=e.touches?e.touches[0]:e;
+    const dy = startY - t.clientY; // swipe up -> positive
+    const delta = Math.round(dy/3); // sensitivity
+    let v = Math.max(0, Math.min(100, startVal + delta));
+    if(gSide==='left'){ bright.value=v; applyBrightness(v); }
+    else { volume.value=v; vid.volume=v/100; }
+    showEdge(gSide);
+    e.preventDefault();
+  }
+  function touchEnd(){ gSide=null; }
+
+  wrap.addEventListener('touchstart',touchStart,{passive:true});
+  wrap.addEventListener('touchmove',touchMove,{passive:false});
+  wrap.addEventListener('touchend',touchEnd);
+  edgeLeft.addEventListener('click',()=>{ showEdge('left'); });
+  edgeRight.addEventListener('click',()=>{ showEdge('right'); });
+
+  /* ------------ Controls ------------ */
+  function setPPIcon(paused){
+    pp.innerHTML = paused
+      ? '<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';
+  }
+  function toggle(){
+    if(vid.paused){ vid.play(); setPPIcon(false); } else { vid.pause(); setPPIcon(true); }
+    showUI();
+  }
+  pp.onclick=toggle; vid.addEventListener('click',toggle);
+
+  back10.onclick=()=>{ vid.currentTime=Math.max(0, vid.currentTime-10); showUI(); };
+  fwd10.onclick=()=>{ vid.currentTime=Math.min(vid.duration||0, vid.currentTime+10); showUI(); };
+
+  function fmt(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
+  vid.addEventListener('timeupdate',()=>{
+    const d=vid.duration||0,c=vid.currentTime||0;
+    timetxt.textContent=`${fmt(c)} / ${fmt(d)}`;
+    scrub.max=Math.max(1,d); scrub.value=c;
+    prog.style.width=`${d?(c/d)*100:0}%`;
+    // save position occasionally
+    if(Math.floor(c)%5===0){ try{ localStorage.setItem('resume_'+SRC, String(Math.floor(c))); }catch(_){} }
+  });
+  scrub.oninput=()=>{ vid.currentTime=Number(scrub.value); showUI(); };
+
+  // Fullscreen
+  fsBtn.onclick=()=>{ if(!document.fullscreenElement){ goFullscreen(); } else { document.exitFullscreen?.(); } };
+
+  /* ------------ Lock & Auto-hide ------------ */
+  let locked=false, timer=null;
+  function showUI(forceQuick){
+    if(locked) return;
+    wrap.classList.remove('hide');
+    clearTimeout(timer);
+    timer=setTimeout(()=>wrap.classList.add('hide'), forceQuick?1500:3500);
+  }
+  ['mousemove','touchstart','keydown'].forEach(ev=>wrap.addEventListener(ev,()=>showUI()));
+  vid.addEventListener('play',()=>{ setPPIcon(false); hideLoader(); showUI(); });
+  vid.addEventListener('pause',()=>{ setPPIcon(true); showUI(true); });
+
+  lockBtn.onclick=()=>{
+    locked=true; wrap.classList.add('locked');
+  };
+  unlockBtn.onclick=()=>{
+    locked=false; wrap.classList.remove('locked'); showUI();
+  };
+
+  gear.onclick=()=>sheet.classList.toggle('open');
+  volBtn.onclick=()=>{ vid.muted=!vid.muted; volBtn.style.opacity=vid.muted?0.5:1; showEdge('right'); };
+
+  /* ------------ Back button ------------ */
+  document.getElementById('btnClose').addEventListener('click', ()=>{
+    if (PREV){ location.href = decodeURIComponent(PREV); }
+    else if (document.referrer){ window.history.back(); }
+    else { location.href='index.html'; }
+  });
+
+  /* ------------ Resume modal ------------ */
+  function showResumeModal(seconds){
+    resumeText.textContent = `Resume from ${fmt(seconds)}?`;
+    resumeModal.classList.add('open');
+    return new Promise(resolve=>{
+      const close=v=>{ resumeModal.classList.remove('open'); resolve(v); };
+      resumeYes.onclick=()=>close('continue');
+      resumeRestart.onclick=()=>close('restart');
+      resumeCancel.onclick=()=>close('cancel');
+      resumeModal.addEventListener('click',(e)=>{ if(e.target===resumeModal) close('cancel'); }, {once:true});
+    });
+  }
+
+  vid.addEventListener('loadedmetadata', async ()=>{
+    // initial volume/brightness
+    vid.volume = Number(volume.value)/100;
+    applyBrightness(Number(bright.value));
+
+    // resume if exists
+    let saved=0; try{ saved = Number(localStorage.getItem('resume_'+SRC)||0); }catch(_){}
+    if(saved>5 && saved < (vid.duration||1)-5){
+      const choice = await showResumeModal(saved);
+      if(choice==='continue'){ vid.currentTime = saved; }
+      else if(choice==='restart'){ vid.currentTime = 0; }
+    } else {
+      // try to autoplay after user gesture; if blocked, show pause icon
+      try{ await vid.play(); setPPIcon(false); }catch(_){ setPPIcon(true); }
+    }
+    hideLoader();
+    showUI();
+    goFullscreen();
+  });
+
+  window.addEventListener('beforeunload',()=>{
+    try{ localStorage.setItem('resume_'+SRC, String(Math.floor(vid.currentTime||0))); }catch(_){} 
+  });
 </script>
 </body>
 </html>
