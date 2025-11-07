@@ -7,8 +7,11 @@
 <style>
 :root{--brand:#e50914;--stroke:#3a3a3a;}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;width:100%;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#fff}
+html,body{height:100%;width:100%;background:#000;overflow:hidden}
+body{font-family:Arial,Helvetica,sans-serif;color:#fff}
 .wrap{position:fixed;inset:0;background:#000}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .25s;background:#000;}
+video.show{opacity:1}
 
 /* Loader */
 .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;background:#000}
@@ -26,36 +29,36 @@ html,body{height:100%;width:100%;background:#000;overflow:hidden;font-family:Ari
 .round{width:70px;height:70px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer}
 .pp svg{width:54px;height:54px}
 
-/* Progress */
-.progress{position:absolute;left:12px;right:12px;bottom:90px;height:6px;background:#333;border-radius:6px;overflow:hidden;z-index:5}
-.progress>span{display:block;height:100%;width:0;background:var(--brand)}
+/* Progress + Seek */
+.progress-container{position:absolute;left:12px;right:12px;bottom:90px;height:12px;z-index:6;}
+.progress{width:100%;height:4px;background:#333;border-radius:3px;position:relative;}
+.progress span{position:absolute;left:0;top:0;height:100%;width:0;background:var(--brand);border-radius:3px;}
+input[type=range]{position:absolute;width:100%;top:-4px;height:12px;cursor:pointer;appearance:none;background:transparent;}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:#e50914;border:none;}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2);}
 
-/* Bottom row */
+/* Bottom bar */
 .bottom{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:22px;z-index:5;transition:opacity .3s}
 .menuBtn{display:flex;align-items:center;gap:6px;font-size:14px;color:#fff;background:transparent;border:none;cursor:pointer}
 .menuBtn svg{width:22px;height:22px;fill:#fff}
 
-/* Unlock Button */
-.unlockBtn{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);
-display:flex;align-items:center;gap:8px;padding:12px 20px;font-size:15px;font-weight:700;color:#fff;
-border:none;border-radius:24px;cursor:pointer;background:rgba(20,20,20,.75);
-border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);
-box-shadow:0 0 18px rgba(0,0,0,.5);transition:transform .2s,opacity .3s;
-z-index:10;opacity:0;pointer-events:none}
-.unlockBtn svg{width:22px;height:22px;fill:#ffcc00;}
-.unlockBtn.show{opacity:1;pointer-events:auto;animation:pulse 2s infinite alternate}
-@keyframes pulse{from{box-shadow:0 0 8px rgba(229,9,20,.4);}to{box-shadow:0 0 18px rgba(229,9,20,.8);}}
+/* Unlock button */
+.unlockBtn{
+  position:absolute;left:50%;bottom:50px;transform:translateX(-50%);
+  background:rgba(20,20,20,.7);border:1px solid #3a3a3a;border-radius:20px;
+  padding:12px 20px;color:#fff;display:none;z-index:10;
+  font-weight:600;cursor:pointer;
+  backdrop-filter:blur(6px);
+}
 
-/* Hide */
-.hide .topBar,.hide .center,.hide .progress,.hide .bottom{opacity:0;pointer-events:none}
-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .3s;opacity:0}
-video.show{opacity:1}
+/* Hide when inactive */
+.hide .topBar,.hide .center,.hide .progress-container,.hide .bottom{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
 <div class="wrap" id="wrap">
   <div class="loader" id="loader"><div class="spinner"></div><div class="loadText">Loading...</div></div>
-  <video id="vid" playsinline preload="metadata"></video>
+  <video id="vid" playsinline preload="metadata" controlslist="nodownload noremoteplayback" muted></video>
 
   <!-- top -->
   <div class="topBar" id="topBar">
@@ -72,60 +75,82 @@ video.show{opacity:1}
   </div>
 
   <!-- progress -->
-  <div class="progress"><span id="prog"></span></div>
+  <div class="progress-container">
+    <div class="progress"><span id="prog"></span></div>
+    <input type="range" id="seek" min="0" value="0">
+  </div>
 
   <!-- bottom -->
   <div class="bottom" id="bottom">
     <button class="menuBtn" id="speedBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2" fill="none"/></svg><span id="speedLabel">1x</span></button>
-    <button class="menuBtn" id="lockBtn"><svg id="lockIcon" viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none"/></svg>Lock</button>
-    <button class="menuBtn" id="episodesBtn" style="display:none"><svg viewBox="0 0 24 24"><path d="M3 6h18v4H3zM3 14h18v4H3z" stroke="#fff" stroke-width="2" fill="none"/></svg>Episodes</button>
-    <button class="menuBtn" id="nextBtn" style="display:none"><svg viewBox="0 0 24 24"><path d="M5 7v10l8-5-8-5zM17 7v10" stroke="#fff" stroke-width="2" fill="none"/></svg>Next</button>
+    <button class="menuBtn" id="lockBtn"><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="2" fill="none"/></svg>Lock</button>
+    <button class="menuBtn" id="zoomBtn"><svg viewBox="0 0 24 24"><path d="M15 15h4v4M9 9H5V5M9 15H5v4M15 9h4V5" stroke="#fff" stroke-width="2" fill="none"/></svg>Zoom</button>
   </div>
 
-  <!-- Unlock -->
-  <button class="unlockBtn" id="unlockBtn">
-    <svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" fill="none" stroke="#ffcc00" stroke-width="2"/></svg>
-    Unlock Player
-  </button>
+  <!-- unlock -->
+  <button class="unlockBtn" id="unlockBtn">Unlock</button>
 </div>
 
 <script>
 const qs=new URLSearchParams(location.search);
-const SRC=qs.get('src');
-const TITLE=qs.get('title')||'Untitled';
-const TYPE=qs.get('type')||'movie';
-const INDEX=parseInt(qs.get('index')||'0');
-const TOTAL=parseInt(qs.get('total')||'0');
+const SRC=qs.get('src') || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+const TITLE=qs.get('title') || "Untitled";
 
+const wrap=document.getElementById('wrap');
 const vid=document.getElementById('vid');
 const loader=document.getElementById('loader');
 const prog=document.getElementById('prog');
+const seek=document.getElementById('seek');
 const pp=document.getElementById('pp');
 const speedBtn=document.getElementById('speedBtn');
 const speedLabel=document.getElementById('speedLabel');
 const lockBtn=document.getElementById('lockBtn');
 const unlockBtn=document.getElementById('unlockBtn');
 const fsBtn=document.getElementById('fsBtn');
-const episodesBtn=document.getElementById('episodesBtn');
-const nextBtn=document.getElementById('nextBtn');
+const zoomBtn=document.getElementById('zoomBtn');
+const back10=document.getElementById('back10');
+const fwd10=document.getElementById('fwd10');
+
 document.getElementById('titleTop').textContent=TITLE;
 vid.src=SRC;
 
-/* Show/hide by type */
-if(TYPE==='series'){episodesBtn.style.display='inline-flex';nextBtn.style.display='inline-flex';}
-
-/* Loader */
-vid.addEventListener('canplay',()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});});
+/* Loader + Autoplay */
+vid.addEventListener("canplay",()=>{
+  loader.style.display="none";
+  vid.classList.add("show");
+  try{vid.play().catch(()=>{});}catch(e){}
+});
 
 /* Play/Pause */
-function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
-function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
+function setPPIcon(p){
+  pp.innerHTML=p
+    ?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>'
+    :'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';
+}
+function toggle(){
+  if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}
+  showUI();
+}
 pp.onclick=toggle;vid.onclick=toggle;
-document.getElementById('back10').onclick=()=>{vid.currentTime=Math.max(0,vid.currentTime-10);showUI();}
-document.getElementById('fwd10').onclick=()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);showUI();}
 
-/* Progress */
-vid.addEventListener('timeupdate',()=>{const d=vid.duration||0,c=vid.currentTime||0;prog.style.width=`${(c/d)*100}%`;});
+/* ✅ 10s Seek Fixed */
+back10.onclick=()=>{
+  if(vid.readyState>0){vid.currentTime=Math.max(vid.currentTime-10,0);}
+  showUI();
+};
+fwd10.onclick=()=>{
+  if(vid.readyState>0){vid.currentTime=Math.min(vid.currentTime+10,vid.duration);}
+  showUI();
+};
+
+/* Progress + Seek */
+vid.addEventListener('timeupdate',()=>{
+  if(vid.duration){
+    prog.style.width=(vid.currentTime/vid.duration*100)+"%";
+    seek.max=vid.duration;seek.value=vid.currentTime;
+  }
+});
+seek.addEventListener('input',()=>{vid.currentTime=seek.value;showUI();});
 
 /* Speed */
 let speeds=[0.5,1,1.5,2];let si=1;
@@ -133,28 +158,24 @@ speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedL
 
 /* Lock/Unlock */
 let locked=false;
-lockBtn.onclick=()=>{locked=true;document.body.classList.add('hide');unlockBtn.classList.add('show');};
-unlockBtn.onclick=()=>{locked=false;unlockBtn.classList.remove('show');document.body.classList.remove('hide');showUI();};
+lockBtn.onclick=()=>{locked=true;wrap.classList.add('hide');unlockBtn.style.display='block';};
+unlockBtn.onclick=()=>{locked=false;wrap.classList.remove('hide');unlockBtn.style.display='none';showUI();};
+
+/* Zoom */
+let fitMode=true;
+zoomBtn.onclick=()=>{fitMode=!fitMode;vid.style.objectFit=fitMode?'contain':'cover';showUI();};
 
 /* Fullscreen */
-fsBtn.onclick=()=>{if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(()=>{});}else{document.exitFullscreen?.();}showUI();};
+fsBtn.onclick=()=>{if(!document.fullscreenElement){wrap.requestFullscreen().catch(()=>{});}else{document.exitFullscreen?.();}showUI();};
 
 /* Auto-hide */
-let timer;function showUI(){if(locked)return;document.body.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>document.body.classList.add('hide'),3000);}
-['mousemove','click','touchstart'].forEach(e=>document.addEventListener(e,showUI));
+let timer;
+function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
+['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
 showUI();
 
-/* Episodes + Next */
-episodesBtn.onclick=()=>{window.location.href='details.html#episodes';};
-nextBtn.onclick=()=>{if(TYPE!=='series')return;
- if(INDEX<TOTAL-1){
-   const nextIndex=INDEX+1;
-   window.location.href=`player.html?src=${encodeURIComponent(SRC.replace(INDEX,nextIndex))}&title=Episode%20${nextIndex+1}&type=series&index=${nextIndex}&total=${TOTAL}`;
- }};
-vid.addEventListener('ended',()=>{if(TYPE==='series'&&INDEX<TOTAL-1){setTimeout(()=>nextBtn.click(),3000);}});
-
 /* Back */
-document.getElementById('btnBack').onclick=()=>window.location.href='details.html';
+document.getElementById('btnBack').onclick=()=>history.back();
 </script>
 </body>
 </html>
