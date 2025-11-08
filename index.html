@@ -205,7 +205,7 @@
     <div id="searchList"></div>
   </div>
 
-  <!-- Category Sections -->
+  <!-- Netflix Categories -->
   <section><h2>Top Searches</h2><div class="row" id="topsearchRow"></div></section>
   <section><h2>Films set in India</h2><div class="row" id="indianRow"></div></section>
   <section><h2>Exciting TV Shows</h2><div class="row" id="excitingRow"></div></section>
@@ -225,7 +225,6 @@
 
   <footer>© 2025 NMix Studio — All Rights Reserved</footer>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
@@ -274,7 +273,7 @@ const sections = {
 let bannerItems = [];
 let allItems = {};
 
-// ---- Search Overlay Toggle ----
+// 🔍 Search overlay toggle
 searchToggle.addEventListener("click", () => {
   searchOverlay.style.display = "flex";
   searchBox.focus();
@@ -286,63 +285,78 @@ closeSearch.addEventListener("click", () => {
   searchResults.style.display = "none";
 });
 
-// ---- Firebase Movie Loader ----
-function makeCard(id, d){
+// 🔧 Create Card
+function makeCard(id, d, type){
   const c = document.createElement("div");
   c.className = "card";
   const img = document.createElement("img");
   img.src = d.poster || "";
   img.alt = d.title || "";
-  img.onclick = ()=> window.location = `details.html?type=${d.type || "movie"}&id=${id}`;
+  img.onclick = ()=> window.location = `details.html?type=${type}&id=${id}`;
   c.appendChild(img);
   return c;
 }
 
-onValue(ref(db, "movies"), snap => {
-  Object.values(sections).forEach(row => row.innerHTML = "");
-  bannerItems = [];
-  snap.forEach(s=>{
-    const id = s.key;
-    const d = s.val();
-    allItems[id] = d;
-    const cat = (d.category || d.section || "").toLowerCase();
-    if(d.banner || d.poster) bannerItems.push({id, ...d});
-    for (let key in sections) {
-      if (cat.includes(key)) sections[key].appendChild(makeCard(id,d));
-    }
-  });
 
-  if(bannerItems.length){
-    let i = 0;
-    const showBanner = ()=>{
-      const item = bannerItems[i];
-      const imgSrc = item.banner || item.poster || "";
-      heroImg.style.opacity = 0;
-      if(imgSrc){
-        heroImg.src = imgSrc;
-        heroImg.style.display = "block";
-      } else {
-        heroImg.style.display = "none";
+function loadContent(type){
+  onValue(ref(db, type), snap => {
+    snap.forEach(s=>{
+      const id = s.key;
+      const d = s.val();
+      allItems[id] = {...d, type};
+
+      const cat = (d.category || d.section || "").toLowerCase();
+      if(d.banner || d.poster) bannerItems.push({id, type, ...d});
+
+      for(let key in sections){
+        if(cat.includes(key)) sections[key].appendChild(makeCard(id, d, type));
       }
-      setTimeout(()=>{
-        if(item.type === "series"){
-          heroPlay.onclick = ()=> window.location = `details.html?type=series&id=${item.id}`;
-        } else {
-          heroPlay.onclick = ()=> window.location = `player.html?src=${encodeURIComponent(item.video||'')}&title=${encodeURIComponent(item.title||'')}&poster=${encodeURIComponent(item.poster||'')}`;
-        }
-        heroInfo.onclick = ()=> window.location = `details.html?type=${item.type||'movie'}&id=${item.id}`;
-        heroImg.style.opacity = 1;
-      },300);
-    };
-    showBanner();
-    setInterval(()=>{
-      i = (i+1) % bannerItems.length;
-      showBanner();
-    },4500);
-  }
-});
+    });
 
-// ---- Search Filter ----
+    // Banner rotation after both loads
+    if(type === "series") setupBanner();
+  });
+}
+
+function setupBanner(){
+  if(!bannerItems.length) return;
+  let i = 0;
+  const showBanner = ()=>{
+    const item = bannerItems[i];
+    const imgSrc = item.banner || item.poster || "";
+    heroImg.style.opacity = 0;
+    if(imgSrc){
+      heroImg.src = imgSrc;
+      heroImg.style.display = "block";
+    } else {
+      heroImg.style.display = "none";
+    }
+    setTimeout(()=>{
+      if(item.type === "series"){
+        heroPlay.onclick = ()=> window.location = `details.html?type=series&id=${item.id}`;
+      } else {
+        heroPlay.onclick = ()=> window.location = `player.html?src=${encodeURIComponent(item.video||'')}&title=${encodeURIComponent(item.title||'')}&poster=${encodeURIComponent(item.poster||'')}`;
+      }
+      heroInfo.onclick = ()=> window.location = `details.html?type=${item.type||'movie'}&id=${item.id}`;
+      heroImg.style.opacity = 1;
+    },300);
+  };
+  showBanner();
+  setInterval(()=>{
+    i = (i+1) % bannerItems.length;
+    showBanner();
+  },4500);
+}
+
+// Clear sections first
+Object.values(sections).forEach(r => r.innerHTML = "");
+bannerItems = [];
+
+// Load both
+loadContent("movies");
+loadContent("series");
+
+// 🔍 Search Filter
 searchBox.addEventListener("input", ()=>{
   const val = searchBox.value.trim().toLowerCase();
   if(!val){searchResults.style.display="none";searchList.innerHTML="";return;}
@@ -350,7 +364,7 @@ searchBox.addEventListener("input", ()=>{
   searchResults.style.display="block";
   for(const [id,d] of Object.entries(allItems)){
     if((d.title||"").toLowerCase().includes(val)){
-      const c = makeCard(id,d);
+      const c = makeCard(id,d,d.type);
       searchList.appendChild(c);
     }
   }
