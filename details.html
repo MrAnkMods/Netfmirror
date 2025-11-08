@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -23,12 +22,47 @@
   .row{display:flex;gap:12px;overflow:auto;padding-bottom:6px}
   .card{min-width:120px}
   .card img{width:120px;height:160px;object-fit:cover;border-radius:8px}
+  
+  /* 🔥 Simple toast style */
+  #toast {
+    visibility: hidden;
+    min-width: 220px;
+    background-color: #e50914;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-weight: bold;
+  }
+  #toast.show {
+    visibility: visible;
+    animation: fadein 0.4s, fadeout 0.4s 2.5s;
+  }
+  @keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+  }
+  @keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="back" id="backBtn">← Back</div>  <div id="mainArea"></div>
-</div><script type="module">
+  <div class="back" id="backBtn">← Back</div>
+  <div id="mainArea"></div>
+</div>
+
+<!-- 🔥 Toast element -->
+<div id="toast">Not available right now</div>
+
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
@@ -54,6 +88,13 @@ backBtn.onclick = ()=>{
   if (document.referrer) return window.history.back();
   location.href = "index.html";
 };
+
+function showToast(msg){
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),3000);
+}
 
 if(!id){ main.innerHTML = "<p>No item specified.</p>"; }
 else {
@@ -95,40 +136,34 @@ else {
 
     const playBtn = document.getElementById("playBtn");
 
-    // Handle main Play button logic
+    // ▶ Play Button
     playBtn.onclick = ()=>{
       let videoUrl = "";
       let titleTxt = d.title || "";
-
       if(type === "movie" && d.video){
         videoUrl = d.video;
-      } else if(type === "series" && d.seasons && d.seasons.length > 0){
-        const firstEp = d.seasons[0].episodes && d.seasons[0].episodes[0];
-        if(firstEp && firstEp.video){
+      } else if(type === "series" && d.seasons?.length){
+        const firstEp = d.seasons[0].episodes?.[0];
+        if(firstEp?.video){
           videoUrl = firstEp.video;
           titleTxt += " — " + (firstEp.epTitle || "Episode 1");
         }
       }
-
       if(!videoUrl){ alert("No video URL available"); return; }
-
       document.body.style.opacity = "0.7";
       document.body.style.pointerEvents = "none";
-
       setTimeout(()=>{
         const url = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
         window.location = url;
       },200);
     };
 
-    // Download button
+    // ⬇ Download Button → Show toast instead
     document.getElementById("downloadBtn").onclick = ()=>{
-      const v = d.video || (d.seasons?.[0]?.episodes?.[0]?.video);
-      if(!v){ alert("No video URL available"); return; }
-      window.open(v, "_blank");
+      showToast("Not available right now");
     };
 
-    // Individual episode play
+    // Episode play buttons
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
@@ -139,7 +174,7 @@ else {
       };
     });
 
-    // Related section
+    // Related Section
     onValue(ref(db, "movies"), s2=>{
       const rel = document.getElementById("relatedRow");
       rel.innerHTML = "";
@@ -158,5 +193,6 @@ else {
     });
   });
 }
-</script></body>
+</script>
+</body>
 </html>
