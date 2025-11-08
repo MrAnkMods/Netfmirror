@@ -34,7 +34,7 @@
   .backBtn:hover{opacity:0.7;}
   .backBtn span{font-size:15px;color:#ccc;}
 
-  /* ---- Header Poster ---- */
+  /* ---- Banner ---- */
   .banner{
     position:relative;
     width:100%;
@@ -133,6 +133,33 @@
     cursor:pointer;
   }
 
+  /* ---- Suggested Section ---- */
+  .suggested{
+    padding:10px 20px;
+  }
+  .suggested h3{
+    font-size:18px;
+    margin:10px 0;
+  }
+  .suggestRow{
+    display:flex;
+    gap:10px;
+    overflow:auto;
+    padding-bottom:10px;
+  }
+  .sCard{
+    min-width:130px;
+    background:#111;
+    border-radius:8px;
+    overflow:hidden;
+    cursor:pointer;
+  }
+  .sCard img{
+    width:130px;
+    height:180px;
+    object-fit:cover;
+  }
+
   /* ---- Toast ---- */
   #toast {
     visibility: hidden;
@@ -165,7 +192,6 @@
 </head>
 <body>
 
-
 <div class="topbar">
   <button class="backBtn" id="backBtn">← <span>Back</span></button>
 </div>
@@ -192,7 +218,6 @@ const db = getDatabase(app);
 const params = new URLSearchParams(location.search);
 const type = params.get("type") || "movie";
 const id = params.get("id");
-
 const main = document.getElementById("mainArea");
 const backBtn = document.getElementById("backBtn");
 backBtn.onclick = ()=> location.href = "index.html";
@@ -211,7 +236,7 @@ else {
     const d = snap.val();
     if(!d){ main.innerHTML = "<p style='padding:20px'>Item not found.</p>"; return; }
 
-    // 🎬 Common Banner
+    // 🎬 Banner
     let html = `
       <div class="banner">
         <img src="${d.poster || 'assets/banner1.jpg'}">
@@ -227,10 +252,10 @@ else {
       <div class="desc">${d.description || ''}</div>
     `;
 
-    // 📺 Series Episodes
+    // 📺 Episodes (for Series)
     if(type === "series" && d.seasons?.length){
       html += `<div class="episodes"><h3>Episodes</h3>`;
-      d.seasons.forEach((s, si)=>{
+      d.seasons.forEach((s)=>{
         s.episodes?.forEach((ep, ei)=>{
           html += `
             <div class="ep">
@@ -245,6 +270,12 @@ else {
       });
       html += `</div>`;
     }
+
+    // 📽️ Suggested (Movies or Series)
+    html += `<div class="suggested">
+               <h3>${type === 'series' ? 'Similar Series' : 'More Like This'}</h3>
+               <div class="suggestRow" id="suggestRow"></div>
+             </div>`;
 
     main.innerHTML = html;
 
@@ -278,6 +309,33 @@ else {
         const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&poster=${encodeURIComponent(d.poster||'')}`;
         window.location = playerUrl;
       };
+    });
+
+    // 🎞️ Load Suggestions
+    loadSuggestions(node, d.category || d.section || '', id);
+  });
+}
+
+// 🔍 Load similar category items
+function loadSuggestions(node, category, currentId){
+  const suggestRow = document.getElementById("suggestRow");
+  if(!suggestRow) return;
+  onValue(ref(db, node), snap=>{
+    suggestRow.innerHTML = "";
+    snap.forEach(s=>{
+      const id = s.key;
+      const d = s.val();
+      if(id === currentId) return;
+      const cat = (d.category || d.section || "").toLowerCase();
+      if(cat.includes(category.toLowerCase())){
+        const card = document.createElement("div");
+        card.className = "sCard";
+        const img = document.createElement("img");
+        img.src = d.poster || "";
+        img.onclick = ()=> window.location = `details.html?type=${node}&id=${id}`;
+        card.appendChild(img);
+        suggestRow.appendChild(card);
+      }
     });
   });
 }
