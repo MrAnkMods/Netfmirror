@@ -2,15 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Player</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>NMix — Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
 <style>
 :root{--brand:#e50914;--stroke:#3a3a3a;}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;width:100%;background:#000;overflow:hidden}
+html,body{
+  height:100%;
+  width:100%;
+  background:#000;
+  overflow:hidden;
+  position:fixed;
+  inset:0;
+}
 body{font-family:Arial,Helvetica,sans-serif;color:#fff}
-.wrap{position:fixed;inset:0;background:#000}
-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .25s;background:#000;}
+.wrap{position:fixed;inset:0;background:#000;width:100vw;height:100vh;overflow:hidden}
+video{position:absolute;inset:0;width:100vw;height:100vh;object-fit:contain;background:#000;opacity:0;transition:opacity .25s}
 video.show{opacity:1}
 
 /* Loader */
@@ -29,7 +36,7 @@ video.show{opacity:1}
 .round{width:70px;height:70px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer}
 .pp svg{width:54px;height:54px}
 
-/* Progress + Seek */
+/* Progress */
 .progress-container{position:absolute;left:12px;right:12px;bottom:90px;height:12px;z-index:6;}
 .progress{width:100%;height:4px;background:#333;border-radius:3px;position:relative;}
 .progress span{position:absolute;left:0;top:0;height:100%;width:0;background:var(--brand);border-radius:3px;}
@@ -53,7 +60,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2);}
   border-radius:50%;
   width:56px;
   height:56px;
-  display:none; /* default hidden */
+  display:none;
   align-items:center;
   justify-content:center;
   color:#fff;
@@ -61,27 +68,12 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2);}
   backdrop-filter:blur(8px);
   cursor:pointer;
   box-shadow:0 0 10px rgba(229,9,20,0.25);
-  transition:box-shadow .25s ease, transform .2s ease;
 }
-.unlockBtn.show {
-  display:flex;
-  animation:pulse 2s infinite alternate;
-}
+.unlockBtn.show {display:flex;animation:pulse 2s infinite alternate;}
 @keyframes pulse {
   from { box-shadow:0 0 10px rgba(229,9,20,0.3); }
   to   { box-shadow:0 0 18px rgba(229,9,20,0.7); }
 }
-.unlockBtn:hover {
-  transform:translateX(-50%) scale(1.05);
-}
-.unlockBtn svg {
-  transition:transform .25s ease;
-}
-.unlockBtn:active svg {
-  transform:scale(0.88);
-}
-
-/* Hide when inactive */
 .hide .topBar,.hide .center,.hide .progress-container,.hide .bottom{opacity:0;pointer-events:none}
 </style>
 </head>
@@ -118,21 +110,19 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2);}
   </div>
 
   <!-- unlock -->
-  <!-- unlock -->
-<!-- unlock -->
-<button class="unlockBtn" id="unlockBtn" aria-label="Unlock Player">
-  <svg viewBox="0 0 24 24" width="22" height="22">
-    <path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z"
-          stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </svg>
-</button>
+  <button class="unlockBtn" id="unlockBtn" aria-label="Unlock Player">
+    <svg viewBox="0 0 24 24" width="22" height="22">
+      <path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z"
+            stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </svg>
+  </button>
 </div>
 
 <script>
 const qs=new URLSearchParams(location.search);
 const SRC=qs.get('src') || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
 const TITLE=qs.get('title') || "Untitled";
-
+const FROM=qs.get('from') || "index"; // 👈 identify source page
 const wrap=document.getElementById('wrap');
 const vid=document.getElementById('vid');
 const loader=document.getElementById('loader');
@@ -147,74 +137,51 @@ const fsBtn=document.getElementById('fsBtn');
 const zoomBtn=document.getElementById('zoomBtn');
 const back10=document.getElementById('back10');
 const fwd10=document.getElementById('fwd10');
-
 document.getElementById('titleTop').textContent=TITLE;
 vid.src=SRC;
 
-/* Loader + Autoplay */
+/* Loader + Autoplay + Auto Fullscreen */
 vid.addEventListener("canplay",()=>{
   loader.style.display="none";
   vid.classList.add("show");
   try{vid.play().catch(()=>{});}catch(e){}
+  enterFullscreen(); // ✅ auto fullscreen
 });
 
 /* Play/Pause */
-function setPPIcon(p){
-  pp.innerHTML=p
-    ?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>'
-    :'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';
-}
-function toggle(){
-  if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}
-  showUI();
-}
+function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
+function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
 pp.onclick=toggle;vid.onclick=toggle;
 
-/* ✅ 10s Seek Fixed */
-back10.onclick=()=>{
-  if(vid.readyState>0){vid.currentTime=Math.max(vid.currentTime-10,0);}
-  showUI();
-};
-fwd10.onclick=()=>{
-  if(vid.readyState>0){vid.currentTime=Math.min(vid.currentTime+10,vid.duration);}
-  showUI();
-};
-
-/* Progress + Seek */
-vid.addEventListener('timeupdate',()=>{
-  if(vid.duration){
-    prog.style.width=(vid.currentTime/vid.duration*100)+"%";
-    seek.max=vid.duration;seek.value=vid.currentTime;
-  }
-});
+/* Seek */
+back10.onclick=()=>{if(vid.readyState>0){vid.currentTime=Math.max(vid.currentTime-10,0);}showUI();};
+fwd10.onclick=()=>{if(vid.readyState>0){vid.currentTime=Math.min(vid.currentTime+10,vid.duration);}showUI();};
+vid.addEventListener('timeupdate',()=>{if(vid.duration){prog.style.width=(vid.currentTime/vid.duration*100)+"%";seek.max=vid.duration;seek.value=vid.currentTime;}});
 seek.addEventListener('input',()=>{vid.currentTime=seek.value;showUI();});
 
 /* Speed */
 let speeds=[0.5,1,1.5,2];let si=1;
-speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();}
+speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();};
 
-/* Lock/Unlock */
-/* Lock/Unlock */
-let locked = false;
-lockBtn.onclick = () => {
-  locked = true;
-  wrap.classList.add('hide');
-  unlockBtn.classList.add('show'); // show unlock icon only now
-};
-
-unlockBtn.onclick = () => {
-  locked = false;
-  wrap.classList.remove('hide');
-  unlockBtn.classList.remove('show'); // hide again when unlocked
-  showUI();
-};
+/* Lock */
+let locked=false;
+lockBtn.onclick=()=>{locked=true;wrap.classList.add('hide');unlockBtn.classList.add('show');};
+unlockBtn.onclick=()=>{locked=false;wrap.classList.remove('hide');unlockBtn.classList.remove('show');showUI();};
 
 /* Zoom */
 let fitMode=true;
 zoomBtn.onclick=()=>{fitMode=!fitMode;vid.style.objectFit=fitMode?'contain':'cover';showUI();};
 
-/* Fullscreen */
-fsBtn.onclick=()=>{if(!document.fullscreenElement){wrap.requestFullscreen().catch(()=>{});}else{document.exitFullscreen?.();}showUI();};
+/* ✅ Fullscreen (Immersive fix) */
+function enterFullscreen(){
+  if(!document.fullscreenElement){
+    wrap.requestFullscreen?.().catch(()=>{});
+    if(screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
+    document.documentElement.style.height="100%";
+    setTimeout(()=>{try{window.scrollTo(0,1);}catch(e){}},300);
+  }
+}
+fsBtn.onclick=()=>{if(!document.fullscreenElement){enterFullscreen();}else{document.exitFullscreen?.();}showUI();};
 
 /* Auto-hide */
 let timer;
@@ -222,8 +189,15 @@ function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(ti
 ['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
 showUI();
 
-/* Back */
-document.getElementById('btnBack').onclick=()=>history.back();
+/* ✅ Smart Back Navigation */
+document.getElementById('btnBack').onclick=()=>{
+  switch(FROM){
+    case 'details': location.href='details.html'; break;
+    case 'movie': location.href='movie.html'; break;
+    case 'series': location.href='series.html'; break;
+    default: location.href='index.html'; break;
+  }
+};
 </script>
 </body>
 </html>
