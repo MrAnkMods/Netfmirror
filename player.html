@@ -5,11 +5,7 @@
 <title>NMix — Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
 <style>
-:root{
-  --brand:#e50914;
-  --stroke:#2f2f2f;
-  --ui-scale:1.1;
-}
+:root{--brand:#e50914;--stroke:#2f2f2f;--ui-scale:1.1;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%;background:#000;overflow:hidden}
 body{font-family:Arial,Helvetica,sans-serif;color:#fff;-webkit-user-select:none;user-select:none}
@@ -17,144 +13,79 @@ body{font-family:Arial,Helvetica,sans-serif;color:#fff;-webkit-user-select:none;
 video{position:absolute;inset:0;width:100vw;height:100vh;object-fit:contain;background:#000;opacity:0;transition:opacity .22s}
 video.show{opacity:1}
 
-/* Center loader (circle only) */
-.loader{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:5;
-  pointer-events:none;
-}
-.spinner{
-  width:56px;
-  height:56px;
-  border-radius:50%;
-  border:3px solid rgba(255,255,255,.25);
-  border-top-color:var(--brand);
-  animation:spin 1s linear infinite;
-  opacity:0.9;
-}
+/* Loader */
+.loader{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;z-index:5;}
+.spinner{width:56px;height:56px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:var(--brand);animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Top bar */
-.topBar{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:20;transition:opacity .18s}
+.topBar{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:20;}
 .btnIcon{width:40px;height:40px;border-radius:10px;background:rgba(10,10,10,.55);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .titleTop{flex:1;text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px}
 
 /* Center controls */
-.center{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%) scale(var(--ui-scale));
-  display:flex;
-  gap:44px;
-  align-items:center;
-  z-index:10;
-  transition:opacity .18s;
-}
-.round{
-  width:56px;
-  height:56px;
-  border-radius:50%;
-  border:2px solid rgba(255,255,255,.28);
-  background:rgba(0,0,0,.35);
-  display:grid;
-  place-items:center;
-  cursor:pointer;
-}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--ui-scale));display:flex;gap:44px;align-items:center;z-index:10;}
+.round{width:56px;height:56px;border-radius:50%;border:2px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer;}
 .pp svg{width:42px;height:42px}
 
 /* Progress */
-.progress-container{position:absolute;left:12px;right:12px;bottom:84px;height:10px;z-index:20;transition:opacity .18s}
+.progress-container{position:absolute;left:12px;right:12px;bottom:84px;height:10px;z-index:20;}
 .progress{width:100%;height:6px;background:#222;border-radius:6px;position:relative;overflow:hidden}
-.progress span{position:absolute;left:0;top:0;height:100%;width:0;background:var(--brand);border-radius:6px}
-input[type=range]{position:absolute;width:100%;top:-6px;height:18px;cursor:pointer;appearance:none;background:transparent}
-input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:var(--brand);border:none}
+.progress span{position:absolute;left:0;top:0;height:100%;width:0;background:var(--brand);}
+input[type=range]{position:absolute;width:100%;top:-6px;height:18px;cursor:pointer;appearance:none;background:transparent;}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:var(--brand);border:none;}
 
 /* Bottom bar */
-.bottom{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:18px;z-index:20;transition:opacity .18s}
+.bottom{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:18px;z-index:20;}
 .menuBtn{display:flex;align-items:center;gap:8px;font-size:13px;color:#fff;background:transparent;border:none;cursor:pointer;padding:6px 10px;border-radius:8px}
 
 /* Unlock button */
-.unlockBtn {
-  position:absolute;left:50%;bottom:48px;transform:translateX(-50%);
-  background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.22);border-radius:50%;
-  width:48px;height:48px;display:none;align-items:center;justify-content:center;color:#fff;z-index:30;
-}
-.unlockBtn.show {display:flex;animation:pulse 2s infinite alternate}
-@keyframes pulse {from{box-shadow:0 0 8px rgba(229,9,20,0.18);}to{box-shadow:0 0 14px rgba(229,9,20,0.36);}}
+.unlockBtn{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.22);border-radius:50%;width:48px;height:48px;display:none;align-items:center;justify-content:center;color:#fff;z-index:30;}
+.unlockBtn.show{display:flex;animation:pulse 2s infinite alternate;}
+@keyframes pulse{from{box-shadow:0 0 8px rgba(229,9,20,0.18);}to{box-shadow:0 0 14px rgba(229,9,20,0.36);}}
 
 /* hide when locked */
 .hide .topBar,.hide .center,.hide .progress-container,.hide .bottom{opacity:0;pointer-events:none}
 
-/* brightness overlay */
+/* Brightness */
 .brightness{position:absolute;left:0;top:0;bottom:0;width:100%;background:rgba(0,0,0,0);pointer-events:none;z-index:8}
-
-/* overlay label */
-.overlayLabel{
-  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-  background:rgba(0,0,0,.6);padding:8px 12px;border-radius:8px;
-  border:1px solid rgba(255,255,255,.06);z-index:40;font-weight:700;display:none
-}
+.overlayLabel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.6);padding:8px 12px;border-radius:8px;z-index:40;font-weight:700;display:none;}
 .overlayLabel.show{display:block}
-
 .zone{position:absolute;top:0;bottom:0;width:34%;z-index:6;}
 .zone.left{left:0}.zone.right{right:0}
-
-@media(max-width:720px){
-  .center{gap:28px}
-  .round{width:50px;height:50px}
-  .pp svg{width:36px;height:36px}
-  .btnIcon{width:36px;height:36px}
-}
 </style>
 </head>
 <body>
 <div class="wrap" id="wrap">
 
-  <!-- Loader centered behind play button -->
-  <div class="loader" id="loader">
-    <div class="spinner"></div>
-  </div>
-
+  <div class="loader" id="loader"><div class="spinner"></div></div>
   <video id="vid" playsinline preload="metadata" controlslist="nodownload noremoteplayback"></video>
   <div class="brightness" id="brightness"></div>
 
   <div class="zone left" id="leftZone"></div>
   <div class="zone right" id="rightZone"></div>
 
-  <!-- Top bar -->
   <div class="topBar" id="topBar">
     <div class="btnIcon" id="btnBack"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
     <div class="titleTop" id="titleTop">Loading…</div>
     <div class="btnIcon" id="fsBtn"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
   </div>
 
-  <!-- Center controls -->
   <div class="center" id="center">
     <div class="round" id="back10"><svg viewBox="0 0 24 24"><path d="M12 6V3L7 7l5 4V8a6 6 0 1 1-6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
     <div class="round pp" id="pp"><svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg></div>
     <div class="round" id="fwd10"><svg viewBox="0 0 24 24"><path d="M12 6V3l5 4-5 4V8a6 6 0 1 0 6 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
   </div>
 
-  <!-- Progress -->
   <div class="progress-container"><div class="progress"><span id="prog"></span></div><input type="range" id="seek" min="0" value="0"></div>
 
-  <!-- Bottom -->
   <div class="bottom" id="bottom">
     <button class="menuBtn" id="speedBtn">Speed <span id="speedLabel">1x</span></button>
     <button class="menuBtn" id="lockBtn">Lock</button>
     <button class="menuBtn" id="zoomBtn">Zoom</button>
   </div>
 
-  <!-- Unlock -->
   <button class="unlockBtn" id="unlockBtn"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
-
   <div class="overlayLabel" id="ovLabel">50%</div>
 </div>
 
@@ -162,7 +93,9 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 const qs=new URLSearchParams(location.search);
 const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
 const TITLE=qs.get('title')||"Untitled";
-const FROM=qs.get('from')||"details"; // 👈 identify source page
+const FROM=qs.get('from')||localStorage.getItem("lastPage")||"details";
+localStorage.setItem("lastPage",FROM);
+
 const vid=document.getElementById('vid'),loader=document.getElementById('loader');
 const prog=document.getElementById('prog'),seek=document.getElementById('seek'),pp=document.getElementById('pp');
 const lockBtn=document.getElementById('lockBtn'),unlockBtn=document.getElementById('unlockBtn');
@@ -172,8 +105,8 @@ const back10=document.getElementById('back10'),fwd10=document.getElementById('fw
 const brightnessEl=document.getElementById('brightness'),ovLabel=document.getElementById('ovLabel');
 document.getElementById('titleTop').textContent=TITLE;vid.src=SRC;
 
-/* Loader show/hide */
-vid.addEventListener("canplay",()=>{loader.style.display='none';vid.classList.add('show');try{vid.play().catch(()=>{});}catch(e){}enterFullscreen();});
+/* Loader */
+vid.addEventListener("canplay",()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});enterFullscreen();});
 vid.addEventListener("waiting",()=>loader.style.display='flex');
 vid.addEventListener("playing",()=>loader.style.display='none');
 
@@ -201,20 +134,24 @@ unlockBtn.onclick=()=>{locked=false;document.getElementById('wrap').classList.re
 let fit=true;zoomBtn.onclick=()=>{fit=!fit;vid.style.objectFit=fit?'contain':'cover';showUI();};
 
 /* Fullscreen */
-function enterFullscreen(){if(!document.fullscreenElement){try{document.getElementById('wrap').requestFullscreen();}catch(e){}try{screen.orientation?.lock('landscape').catch(()=>{});}catch(e){}}}
+function enterFullscreen(){if(!document.fullscreenElement){document.getElementById('wrap').requestFullscreen().catch(()=>{});screen.orientation?.lock('landscape').catch(()=>{});}}
 fsBtn.onclick=()=>{if(!document.fullscreenElement)enterFullscreen();else document.exitFullscreen?.();showUI();};
 
 /* Auto-hide */
 let timer;function showUI(){if(locked)return;document.getElementById('wrap').classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>document.getElementById('wrap').classList.add('hide'),3000);}['mousemove','click','touchstart'].forEach(e=>document.getElementById('wrap').addEventListener(e,showUI));
 showUI();
 
-/* ✅ Smart Back Navigation */
+/* ✅ Smart Back Button (works like device back) */
 document.getElementById('btnBack').onclick=()=>{
-  const f=FROM.toLowerCase();
+  const lastId=localStorage.getItem("lastId");
+  const lastType=localStorage.getItem("lastType");
+  const f=(FROM||"").toLowerCase();
+  if(history.length>1){history.back();return;}
   if(f==="movie")location.href="movie.html";
   else if(f==="series")location.href="series.html";
   else if(f==="index")location.href="index.html";
-  else location.href="details.html";
+  else if(f==="details"&&lastId&&lastType)location.href=`details.html?type=${lastType}&id=${lastId}`;
+  else location.href="index.html";
 };
 
 /* Brightness */
