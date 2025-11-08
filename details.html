@@ -5,25 +5,109 @@
 <title>NMix — Details</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-  body{margin:0;background:#000;color:#fff;font-family:Inter,Arial;line-height:1.4}
-  .wrap{padding:12px}
-  .back{display:inline-block;padding:8px 10px;background:#111;border-radius:8px;cursor:pointer;margin-bottom:12px}
-  .hero{display:flex;gap:14px;align-items:flex-start}
-  .poster{width:150px;height:220px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06)}
-  h1{margin:2px 0 8px 0;font-size:22px}
-  .meta{color:#9a9a9a;margin-bottom:12px}
-  .btn{padding:10px 16px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
-  .btn.primary{background:#fff;color:#000;margin-right:10px}
-  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,.12);color:#fff}
-  .episodes{margin-top:18px}
-  .season{margin-top:10px;border-top:1px solid #111;padding-top:10px}
-  .ep{background:#111;padding:10px;border-radius:8px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
-  .related{margin-top:18px}
-  .row{display:flex;gap:12px;overflow:auto;padding-bottom:6px}
-  .card{min-width:120px}
-  .card img{width:120px;height:160px;object-fit:cover;border-radius:8px}
+  body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.4}
+  .wrap{padding-bottom:60px}
   
-  /* 🔥 Simple toast style */
+  /* ---- Header Poster ---- */
+  .banner{
+    position:relative;
+    width:100%;
+    height:220px;
+    overflow:hidden;
+  }
+  .banner img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:brightness(0.65);
+  }
+  .overlay{
+    position:absolute;
+    bottom:20px;
+    left:20px;
+  }
+  .title{
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:6px;
+  }
+  .meta{
+    font-size:14px;
+    color:#ccc;
+    margin-bottom:14px;
+  }
+
+  /* ---- Buttons ---- */
+  .btns{
+    display:flex;
+    gap:10px;
+  }
+  .btn{
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .btn.play{
+    background:#fff;
+    color:#000;
+    padding:10px 22px;
+  }
+  .btn.download{
+    background:transparent;
+    border:1px solid #444;
+    color:#fff;
+    padding:10px 22px;
+  }
+
+  /* ---- Description ---- */
+  .desc{
+    padding:16px 20px;
+    color:#bbb;
+    font-size:15px;
+  }
+
+  /* ---- Episodes ---- */
+  .episodes{
+    padding:10px 20px;
+  }
+  .episodes h3{
+    margin:10px 0;
+    font-size:18px;
+  }
+  .ep{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#111;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:8px;
+  }
+  .ep .left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .ep img{
+    width:100px;
+    height:60px;
+    object-fit:cover;
+    border-radius:6px;
+  }
+  .ep .info{
+    font-size:14px;
+  }
+  .ep button{
+    border:none;
+    background:transparent;
+    color:#fff;
+    font-size:18px;
+    cursor:pointer;
+  }
+
+  /* ---- Toast ---- */
   #toast {
     visibility: hidden;
     min-width: 220px;
@@ -54,12 +138,8 @@
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="back" id="backBtn">← Back</div>
-  <div id="mainArea"></div>
-</div>
 
-<!-- 🔥 Toast element -->
+<div class="wrap" id="mainArea"></div>
 <div id="toast">Not available right now</div>
 
 <script type="module">
@@ -83,11 +163,6 @@ const type = params.get("type") || "movie";
 const id = params.get("id");
 
 const main = document.getElementById("mainArea");
-const backBtn = document.getElementById("backBtn");
-backBtn.onclick = ()=>{
-  if (document.referrer) return window.history.back();
-  location.href = "index.html";
-};
 
 function showToast(msg){
   const toast = document.getElementById("toast");
@@ -96,47 +171,52 @@ function showToast(msg){
   setTimeout(()=>toast.classList.remove("show"),3000);
 }
 
-if(!id){ main.innerHTML = "<p>No item specified.</p>"; }
+if(!id){ main.innerHTML = "<p style='padding:20px'>No item specified.</p>"; }
 else {
   const node = type === "series" ? "series" : "movies";
   onValue(ref(db, node + "/" + id), snap=>{
     const d = snap.val();
-    if(!d){ main.innerHTML = "<p>Item not found.</p>"; return; }
+    if(!d){ main.innerHTML = "<p style='padding:20px'>Item not found.</p>"; return; }
 
+    // 🎬 Common Banner
     let html = `
-      <div class="hero">
-        <img class="poster" src="${d.poster||'assets/banner1.jpg'}" />
-        <div style="flex:1">
-          <h1>${d.title||''}</h1>
-          <div class="meta">${d.category || d.section || ''} • ${d.year||''}</div>
-          <div>
-            <button class="btn primary" id="playBtn">▶ Play</button>
-            <button class="btn secondary" id="downloadBtn">⬇ Download</button>
+      <div class="banner">
+        <img src="${d.poster || 'assets/banner1.jpg'}">
+        <div class="overlay">
+          <div class="title">${d.title || ''}</div>
+          <div class="meta">${d.year || ''} • ${d.category || d.section || ''}</div>
+          <div class="btns">
+            <button class="btn play" id="playBtn">▶ Play</button>
+            <button class="btn download" id="downloadBtn">⬇ Download</button>
           </div>
-          <p style="margin-top:12px;color:#bbb">${d.description || ''}</p>
         </div>
       </div>
+      <div class="desc">${d.description || ''}</div>
     `;
 
-    if(type === "series"){
-      html += `<div class="episodes"><h3>Seasons & Episodes</h3>`;
-      (d.seasons || []).forEach((s, idx)=>{
-        html += `<div class="season"><strong>${s.season || 'Season '+(idx+1)}</strong>`;
-        s.episodes.forEach((ep, eidx)=>{
-          html += `<div class="ep"><div>${ep.epTitle||('Episode '+(eidx+1))}</div>
-                   <div><button class="btn primary epPlay" data-video="${encodeURIComponent(ep.video||'')}">Play</button></div></div>`;
+    // 📺 Series Episodes
+    if(type === "series" && d.seasons?.length){
+      html += `<div class="episodes"><h3>Episodes</h3>`;
+      d.seasons.forEach((s, si)=>{
+        s.episodes?.forEach((ep, ei)=>{
+          html += `
+            <div class="ep">
+              <div class="left">
+                <img src="${ep.thumb || d.poster || 'assets/banner1.jpg'}">
+                <div class="info"><b>${ep.epTitle || ('Episode '+(ei+1))}</b><br>${ep.duration || ''}</div>
+              </div>
+              <button class="epPlay" data-video="${encodeURIComponent(ep.video || '')}">▶</button>
+            </div>
+          `;
         });
-        html += `</div>`;
       });
       html += `</div>`;
     }
 
-    html += `<div class="related"><h3>More Like This</h3><div class="row" id="relatedRow"></div></div>`;
     main.innerHTML = html;
 
-    const playBtn = document.getElementById("playBtn");
-
     // ▶ Play Button
+    const playBtn = document.getElementById("playBtn");
     playBtn.onclick = ()=>{
       let videoUrl = "";
       let titleTxt = d.title || "";
@@ -149,47 +229,22 @@ else {
           titleTxt += " — " + (firstEp.epTitle || "Episode 1");
         }
       }
-      if(!videoUrl){ alert("No video URL available"); return; }
-      document.body.style.opacity = "0.7";
-      document.body.style.pointerEvents = "none";
-      setTimeout(()=>{
-        const url = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
-        window.location = url;
-      },200);
+      if(!videoUrl){ showToast("No video available"); return; }
+      const url = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&poster=${encodeURIComponent(d.poster||'')}`;
+      window.location = url;
     };
 
-    // ⬇ Download Button → Show toast instead
-    document.getElementById("downloadBtn").onclick = ()=>{
-      showToast("Not available right now");
-    };
+    // ⬇ Download
+    document.getElementById("downloadBtn").onclick = ()=> showToast("Not available right now");
 
-    // Episode play buttons
+    // ▶ Episode Play Buttons
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
-        if(!v){ alert("No video URL"); return; }
-        const titleEp = (d.title||'') + ' - ' + (ev.currentTarget.closest(".ep").querySelector("div").innerText || 'Episode');
-        const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(titleEp)}&poster=${encodeURIComponent(d.poster||'')}&prev=${encodeURIComponent(location.pathname+location.search)}`;
+        if(!v){ showToast("No video found"); return; }
+        const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&poster=${encodeURIComponent(d.poster||'')}`;
         window.location = playerUrl;
       };
-    });
-
-    // Related Section
-    onValue(ref(db, "movies"), s2=>{
-      const rel = document.getElementById("relatedRow");
-      rel.innerHTML = "";
-      s2.forEach(x=>{
-        const val = x.val();
-        if(val && val.category && d.category && val.category === d.category && x.key !== id){
-          const card = document.createElement("div");
-          card.className = "card";
-          const img = document.createElement("img");
-          img.src = val.poster;
-          img.onclick = ()=> window.location = `details.html?type=movie&id=${x.key}`;
-          card.appendChild(img);
-          rel.appendChild(card);
-        }
-      });
     });
   });
 }
