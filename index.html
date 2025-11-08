@@ -33,140 +33,40 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:10px 10px 10px 14px; /* ✅ Right padding reduced */
+    padding:10px 10px 10px 14px;
   }
 
-  /* ---- Left logo ---- */
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
+  .brand{display:flex;align-items:center;gap:8px;}
+  .brand .Nlogo{font-weight:900;color:#e50914;font-size:28px;}
 
-  .brand .Nlogo{
-    font-weight:900;
-    color:#e50914;
-    font-size:28px;
-  }
+  .nav-links{display:flex;align-items:center;gap:22px;}
+  .nav-links a{color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:6px 8px;border-radius:6px;opacity:.95;}
+  .nav-links a:hover{background:#111;}
 
-  /* ---- Navigation links ---- */
-  .nav-links{
-    display:flex;
-    align-items:center;
-    gap:22px;
-  }
-
-  .nav-links a{
-    color:#fff;
-    text-decoration:none;
-    font-weight:700;
-    font-size:15px;
-    padding:6px 8px;
-    border-radius:6px;
-    opacity:.95;
-  }
-
-  .nav-links a:hover{
-    background:#111;
-  }
-
-  /* ---- Profile ---- */
-  .profile{
-    width:40px;
-    height:40px;
-    border-radius:8px;
-    overflow:hidden;
-    background:#111;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-right:0; /* ✅ Removed right spacing */
-  }
-
-  .profile img{
-    width:40px;
-    height:40px;
-    object-fit:cover;
-    border-radius:8px;
-  }
+  .profile{width:40px;height:40px;border-radius:8px;overflow:hidden;background:#111;
+           display:flex;align-items:center;justify-content:center;margin-right:0;}
+  .profile img{width:40px;height:40px;object-fit:cover;border-radius:8px;}
 
   /* ---- Hero Section ---- */
   .container{padding:14px}
-  .hero{
-    position:relative;
-    height:56vh;
-    border-radius:8px;
-    overflow:hidden;
-    background:#000;
-    border:1px solid #111;
-  }
-
-  .hero img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    filter:brightness(.45);
-    transition:opacity .6s;
-    display:none;
-  }
-
-  .hero .overlay{
-    position:absolute;
-    left:0;
-    bottom:40px;
-    width:100%;
-    text-align:center;
-    z-index:2;
-  }
-
-  .hero .buttons{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:30px;
-    margin-top:10px;
-  }
-
-  .btn{
-    font-weight:700;
-    cursor:pointer;
-    font-size:15px;
-    border:none;
-    border-radius:6px;
-  }
-
-  .btn.mylist, .btn.info{
-    background:transparent;
-    color:#fff;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:4px;
-  }
-
-  .btn.mylist i, .btn.info i{font-size:22px;color:#fff}
-
-  .btn.play{
-    background:#fff;
-    color:#000;
-    padding:10px 26px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-size:16px;
-    border-radius:6px;
-    font-weight:800;
-  }
-
-  .btn.play i{font-size:18px}
+  .hero{position:relative;height:56vh;border-radius:8px;overflow:hidden;background:#000;border:1px solid #111}
+  .hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.45);transition:opacity .6s;display:none;}
+  .hero .overlay{position:absolute;left:0;bottom:40px;width:100%;text-align:center;z-index:2;}
+  .hero .buttons{display:flex;justify-content:center;align-items:center;gap:30px;margin-top:10px;}
+  .btn{font-weight:700;cursor:pointer;font-size:15px;border:none;border-radius:6px;}
+  .btn.mylist, .btn.info{background:transparent;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .btn.mylist i, .btn.info i{font-size:22px;color:#fff;}
+  .btn.play{background:#fff;color:#000;padding:10px 26px;display:flex;align-items:center;gap:8px;font-size:16px;border-radius:6px;font-weight:800;}
+  .btn.play i{font-size:18px;}
 
   section{margin-top:22px}
-  section h2{color:var(--accent);margin:0 0 10px 4px}
-  .row{display:flex;gap:12px;overflow:auto;padding-bottom:8px}
-  .card{min-width:140px;background:transparent;border-radius:8px;overflow:hidden;cursor:pointer}
-  .card img{width:140px;height:200px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06)}
-  .card .meta{margin-top:6px;font-size:13px;color:var(--muted);text-align:center}
-  footer{padding:20px;text-align:center;color:#888;border-top:1px solid #111;margin-top:34px}
+  section h2{color:var(--accent);margin:0 0 10px 4px;}
+  .row{display:flex;gap:12px;overflow:auto;padding-bottom:8px;}
+  .card{min-width:140px;background:transparent;border-radius:8px;overflow:hidden;cursor:pointer;}
+  .card img{width:140px;height:200px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06);}
+  .card .meta{margin-top:6px;font-size:13px;color:var(--muted);text-align:center;}
+
+  footer{padding:20px;text-align:center;color:#888;border-top:1px solid #111;margin-top:34px;}
 
   @media (max-width:720px){
     .hero{height:50vh}
@@ -180,16 +80,12 @@
 <!-- ✅ Header -->
 <header>
   <nav>
-    <div class="brand">
-      <div class="Nlogo">N</div>
-    </div>
-
+    <div class="brand"><div class="Nlogo">N</div></div>
     <div class="nav-links">
       <a href="index.html">Home</a>
       <a href="movie.html">Movies</a>
       <a href="series.html">Series</a>
     </div>
-
     <div class="profile" id="profileBtn" title="Profile">
       <img src="https://i.ibb.co/sJHpnWNn/IMG-20251107-102917-631.jpg" alt="Profile Avatar">
     </div>
@@ -202,29 +98,30 @@
     <img id="heroImg" alt="banner"/>
     <div class="overlay">
       <div class="buttons">
-        <button class="btn mylist" id="myListBtn">
-          <i>＋</i>
-          <span style="font-size:12px;">My List</span>
-        </button>
-
-        <button class="btn play" id="heroPlay">
-          <i>▶</i>
-          <span>Play</span>
-        </button>
-
-        <button class="btn info" id="heroInfo">
-          <i>ⓘ</i>
-          <span style="font-size:12px;">Info</span>
-        </button>
+        <button class="btn mylist" id="myListBtn"><i>＋</i><span style="font-size:12px;">My List</span></button>
+        <button class="btn play" id="heroPlay"><i>▶</i><span>Play</span></button>
+        <button class="btn info" id="heroInfo"><i>ⓘ</i><span style="font-size:12px;">Info</span></button>
       </div>
     </div>
   </div>
 
-  <!-- ✅ Netflix-style categories -->
+  <!-- ✅ All Categories (As per screenshot) -->
   <section><h2>Top Searches</h2><div class="row" id="topsearchRow"></div></section>
+  <section><h2>Films set in India</h2><div class="row" id="indianRow"></div></section>
   <section><h2>Exciting TV Shows</h2><div class="row" id="excitingRow"></div></section>
+  <section><h2>Top 10 Movies in Netflix Today</h2><div class="row" id="top10Row"></div></section>
+  <section><h2>Only on Netflix</h2><div class="row" id="onlyRow"></div></section>
+  <section><h2>Watch Together for Older Kids</h2><div class="row" id="kidsRow"></div></section>
+  <section><h2>Dark TV Sci-Fi & Fantasy</h2><div class="row" id="darkRow"></div></section>
+  <section><h2>Violent Movies</h2><div class="row" id="violentRow"></div></section>
+  <section><h2>TV Sci-Fi & Horror</h2><div class="row" id="horrorRow"></div></section>
   <section><h2>Comedy Movies</h2><div class="row" id="comedyRow"></div></section>
-  <section><h2>New on NMix</h2><div class="row" id="newRow"></div></section>
+  <section><h2>Bingeworthy TV Shows</h2><div class="row" id="bingeworthyRow"></div></section>
+  <section><h2>New on Netflix</h2><div class="row" id="newRow"></div></section>
+  <section><h2>East Asian Movies & TV</h2><div class="row" id="asianRow"></div></section>
+  <section><h2>Anime</h2><div class="row" id="animeRow"></div></section>
+  <section><h2>Docs & Reality TV</h2><div class="row" id="docsRow"></div></section>
+  <section><h2>Critically-acclaimed Korean Series</h2><div class="row" id="koreanRow"></div></section>
 
   <footer>© 2025 NMix Studio — All Rights Reserved</footer>
 </div>
@@ -250,10 +147,22 @@ const heroImg = document.getElementById("heroImg");
 const heroPlay = document.getElementById("heroPlay");
 
 const sections = {
-  topsearch: document.getElementById("topsearchRow"),
-  exciting: document.getElementById("excitingRow"),
-  comedy: document.getElementById("comedyRow"),
-  new: document.getElementById("newRow")
+  topsearch: topsearchRow,
+  indian: indianRow,
+  exciting: excitingRow,
+  top10: top10Row,
+  only: onlyRow,
+  kids: kidsRow,
+  dark: darkRow,
+  violent: violentRow,
+  horror: horrorRow,
+  comedy: comedyRow,
+  bingeworthy: bingeworthyRow,
+  new: newRow,
+  asian: asianRow,
+  anime: animeRow,
+  docs: docsRow,
+  korean: koreanRow
 };
 
 let bannerItems = [];
@@ -265,7 +174,7 @@ function makeCard(id, d){
   const img = document.createElement("img");
   img.src = d.poster || "";
   img.alt = d.title || "";
-  img.onclick = ()=> window.location = `details.html?type=movie&id=${id}`;
+  img.onclick = ()=> window.location = `details.html?type=${d.type || "movie"}&id=${id}`;
   c.appendChild(img);
   const meta = document.createElement("div");
   meta.className = "meta";
@@ -304,7 +213,7 @@ onValue(ref(db, "movies"), snap => {
         heroImg.style.display = "none";
       }
       setTimeout(()=>{
-        heroPlay.onclick = ()=> window.location = `details.html?type=movie&id=${item.id}`;
+        heroPlay.onclick = ()=> window.location = `details.html?type=${item.type || "movie"}&id=${item.id}`;
         heroImg.style.opacity = 1;
       },300);
     };
