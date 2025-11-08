@@ -5,26 +5,161 @@
 <title>NMix — Home</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-  :root{--bg:#000;--card:#111;--accent:#e50914;--muted:#8a8a8a}
+  :root {
+    --bg: #000;
+    --card: #111;
+    --accent: #ffffff;
+    --muted: #8a8a8a;
+  }
+
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:#fff}
-  header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(180deg,#080808,rgba(0,0,0,.6));position:sticky;top:0;z-index:40;border-bottom:1px solid #111}
-  .brand{display:flex;align-items:center;gap:12px}
-  .brand .Nlogo{font-weight:900;color:var(--accent);font-size:28px;margin-right:6px}
-  .brand h1{margin:0;font-size:18px;letter-spacing:0.3px}
-  nav{display:flex;gap:18px;align-items:center}
-  nav a{color:#fff;text-decoration:none;font-weight:700;padding:8px 10px;border-radius:8px;opacity:.95}
-  nav a:hover{background:#111}
-  .profile{width:36px;height:36px;border-radius:8px;background:#222;display:grid;place-items:center;cursor:pointer}
-  .profile img{width:28px;height:28px;border-radius:6px;object-fit:cover}
+  body{
+    margin:0;
+    font-family:Inter,Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:#fff;
+  }
+
+  /* ---- Header ---- */
+  header{
+    background:linear-gradient(180deg,#080808,rgba(0,0,0,.6));
+    position:sticky;
+    top:0;
+    z-index:40;
+    border-bottom:1px solid #111;
+  }
+
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 10px 10px 14px; /* ✅ Right padding reduced */
+  }
+
+  /* ---- Left logo ---- */
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .brand .Nlogo{
+    font-weight:900;
+    color:#e50914;
+    font-size:28px;
+  }
+
+  /* ---- Navigation links ---- */
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap:22px;
+  }
+
+  .nav-links a{
+    color:#fff;
+    text-decoration:none;
+    font-weight:700;
+    font-size:15px;
+    padding:6px 8px;
+    border-radius:6px;
+    opacity:.95;
+  }
+
+  .nav-links a:hover{
+    background:#111;
+  }
+
+  /* ---- Profile ---- */
+  .profile{
+    width:40px;
+    height:40px;
+    border-radius:8px;
+    overflow:hidden;
+    background:#111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:0; /* ✅ Removed right spacing */
+  }
+
+  .profile img{
+    width:40px;
+    height:40px;
+    object-fit:cover;
+    border-radius:8px;
+  }
+
+  /* ---- Hero Section ---- */
   .container{padding:14px}
-  .hero{position:relative;height:56vh;border-radius:8px;overflow:hidden;background:#000;border:1px solid #111}
-  .hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.45);transition:opacity .6s;display:none;}
-  .hero .overlay{position:absolute;left:20px;bottom:26px;color:#fff;z-index:2}
-  .hero .title{font-size:28px;font-weight:800;margin-bottom:10px}
-  .hero .buttons{display:flex;gap:12px}
-  .btn{background:#fff;color:#000;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;border:none}
-  .btn.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.12)}
+  .hero{
+    position:relative;
+    height:56vh;
+    border-radius:8px;
+    overflow:hidden;
+    background:#000;
+    border:1px solid #111;
+  }
+
+  .hero img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:brightness(.45);
+    transition:opacity .6s;
+    display:none;
+  }
+
+  .hero .overlay{
+    position:absolute;
+    left:0;
+    bottom:40px;
+    width:100%;
+    text-align:center;
+    z-index:2;
+  }
+
+  .hero .buttons{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:30px;
+    margin-top:10px;
+  }
+
+  .btn{
+    font-weight:700;
+    cursor:pointer;
+    font-size:15px;
+    border:none;
+    border-radius:6px;
+  }
+
+  .btn.mylist, .btn.info{
+    background:transparent;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+
+  .btn.mylist i, .btn.info i{font-size:22px;color:#fff}
+
+  .btn.play{
+    background:#fff;
+    color:#000;
+    padding:10px 26px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:16px;
+    border-radius:6px;
+    font-weight:800;
+  }
+
+  .btn.play i{font-size:18px}
+
   section{margin-top:22px}
   section h2{color:var(--accent);margin:0 0 10px 4px}
   .row{display:flex;gap:12px;overflow:auto;padding-bottom:8px}
@@ -32,66 +167,69 @@
   .card img{width:140px;height:200px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06)}
   .card .meta{margin-top:6px;font-size:13px;color:var(--muted);text-align:center}
   footer{padding:20px;text-align:center;color:#888;border-top:1px solid #111;margin-top:34px}
+
   @media (max-width:720px){
     .hero{height:50vh}
-    .hero .title{font-size:22px}
-    .card img{height:180px}
+    .btn.play{padding:8px 20px;font-size:14px}
+    .btn.mylist i, .btn.info i{font-size:20px}
   }
 </style>
 </head>
 <body>
 
+<!-- ✅ Header -->
 <header>
-  <div class="brand">
-    <div class="Nlogo">N</div>
-    <div>
-      <h1>NMix</h1>
-      <div style="font-size:12px;color:#9a9a9a">AnkMods</div>
-    </div>
-  </div>
   <nav>
-    <a href="index.html">Home</a>
-    <a href="movie.html">Movies</a>
-    <a href="series.html">Series</a>
+    <div class="brand">
+      <div class="Nlogo">N</div>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="movie.html">Movies</a>
+      <a href="series.html">Series</a>
+    </div>
+
     <div class="profile" id="profileBtn" title="Profile">
-      <img id="profileImg" src="assets/profile.png" alt="profile"/>
+      <img src="https://i.ibb.co/sJHpnWNn/IMG-20251107-102917-631.jpg" alt="Profile Avatar">
     </div>
   </nav>
 </header>
 
+<!-- ✅ Hero Section -->
 <div class="container">
   <div class="hero" id="hero">
     <img id="heroImg" alt="banner"/>
     <div class="overlay">
-      <div class="title" id="heroTitle">Welcome to NMix</div>
       <div class="buttons">
-        <button class="btn" id="heroPlay">Play</button>
-        <button class="btn secondary" id="heroInfo">More Info</button>
+        <button class="btn mylist" id="myListBtn">
+          <i>＋</i>
+          <span style="font-size:12px;">My List</span>
+        </button>
+
+        <button class="btn play" id="heroPlay">
+          <i>▶</i>
+          <span>Play</span>
+        </button>
+
+        <button class="btn info" id="heroInfo">
+          <i>ⓘ</i>
+          <span style="font-size:12px;">Info</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Netflix-style categories -->
+  <!-- ✅ Netflix-style categories -->
   <section><h2>Top Searches</h2><div class="row" id="topsearchRow"></div></section>
-  <section><h2>Films set in India</h2><div class="row" id="indianRow"></div></section>
   <section><h2>Exciting TV Shows</h2><div class="row" id="excitingRow"></div></section>
-  <section><h2>Top 10 Movies in Netflix Today</h2><div class="row" id="top10Row"></div></section>
-  <section><h2>Only on Netflix</h2><div class="row" id="onlyRow"></div></section>
-  <section><h2>Watch Together for Older Kids</h2><div class="row" id="kidsRow"></div></section>
-  <section><h2>Dark TV Sci-Fi & Fantasy</h2><div class="row" id="darkRow"></div></section>
-  <section><h2>Violent Movies</h2><div class="row" id="violentRow"></div></section>
-  <section><h2>TV Sci-Fi & Horror</h2><div class="row" id="horrorRow"></div></section>
   <section><h2>Comedy Movies</h2><div class="row" id="comedyRow"></div></section>
-  <section><h2>Bingeworthy TV Shows</h2><div class="row" id="bingeworthyRow"></div></section>
-  <section><h2>New on Netflix</h2><div class="row" id="newRow"></div></section>
-  <section><h2>East Asian Movies & TV</h2><div class="row" id="asianRow"></div></section>
-  <section><h2>Anime</h2><div class="row" id="animeRow"></div></section>
-  <section><h2>Docs & Reality TV</h2><div class="row" id="docsRow"></div></section>
-  <section><h2>Critically-acclaimed Korean Series</h2><div class="row" id="koreanRow"></div></section>
+  <section><h2>New on NMix</h2><div class="row" id="newRow"></div></section>
 
   <footer>© 2025 NMix Studio — All Rights Reserved</footer>
 </div>
 
+<!-- ✅ Firebase Logic -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
@@ -109,26 +247,13 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const heroImg = document.getElementById("heroImg");
-const heroTitle = document.getElementById("heroTitle");
 const heroPlay = document.getElementById("heroPlay");
 
 const sections = {
   topsearch: document.getElementById("topsearchRow"),
-  indian: document.getElementById("indianRow"),
   exciting: document.getElementById("excitingRow"),
-  top10: document.getElementById("top10Row"),
-  only: document.getElementById("onlyRow"),
-  kids: document.getElementById("kidsRow"),
-  dark: document.getElementById("darkRow"),
-  violent: document.getElementById("violentRow"),
-  horror: document.getElementById("horrorRow"),
   comedy: document.getElementById("comedyRow"),
-  bingeworthy: document.getElementById("bingeworthyRow"),
-  new: document.getElementById("newRow"),
-  asian: document.getElementById("asianRow"),
-  anime: document.getElementById("animeRow"),
-  docs: document.getElementById("docsRow"),
-  korean: document.getElementById("koreanRow")
+  new: document.getElementById("newRow")
 };
 
 let bannerItems = [];
@@ -139,11 +264,8 @@ function makeCard(id, d){
   c.className = "card";
   const img = document.createElement("img");
   img.src = d.poster || "";
-  img.alt = d.title||"";
-  img.onclick = ()=> {
-    const t = d.type === "series" ? "series" : "movie";
-    window.location = `details.html?type=${t}&id=${id}`;
-  };
+  img.alt = d.title || "";
+  img.onclick = ()=> window.location = `details.html?type=movie&id=${id}`;
   c.appendChild(img);
   const meta = document.createElement("div");
   meta.className = "meta";
@@ -152,16 +274,14 @@ function makeCard(id, d){
   return c;
 }
 
-onValue(ref(db,"movies"), snap => {
+onValue(ref(db, "movies"), snap => {
   Object.values(sections).forEach(row => row.innerHTML = "");
   bannerItems = [];
 
   snap.forEach(s=>{
     const id = s.key;
     const d = s.val();
-    d.type = d.type || "movie";
     allItems[id] = d;
-
     const cat = (d.category || d.section || "").toLowerCase();
 
     if(d.banner || d.poster) bannerItems.push({id, ...d});
@@ -184,7 +304,6 @@ onValue(ref(db,"movies"), snap => {
         heroImg.style.display = "none";
       }
       setTimeout(()=>{
-        heroTitle.textContent = item.title || "Welcome to NMix";
         heroPlay.onclick = ()=> window.location = `details.html?type=movie&id=${item.id}`;
         heroImg.style.opacity = 1;
       },300);
