@@ -30,7 +30,7 @@ video.show{opacity:1}
   pointer-events:none;
 }
 .spinner{
-  width:56px; /* 👈 same as Play button */
+  width:56px;
   height:56px;
   border-radius:50%;
   border:3px solid rgba(255,255,255,.25);
@@ -162,6 +162,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 const qs=new URLSearchParams(location.search);
 const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
 const TITLE=qs.get('title')||"Untitled";
+const FROM=qs.get('from')||"details"; // 👈 identify source page
 const vid=document.getElementById('vid'),loader=document.getElementById('loader');
 const prog=document.getElementById('prog'),seek=document.getElementById('seek'),pp=document.getElementById('pp');
 const lockBtn=document.getElementById('lockBtn'),unlockBtn=document.getElementById('unlockBtn');
@@ -207,8 +208,14 @@ fsBtn.onclick=()=>{if(!document.fullscreenElement)enterFullscreen();else documen
 let timer;function showUI(){if(locked)return;document.getElementById('wrap').classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>document.getElementById('wrap').classList.add('hide'),3000);}['mousemove','click','touchstart'].forEach(e=>document.getElementById('wrap').addEventListener(e,showUI));
 showUI();
 
-/* Back → always details.html */
-document.getElementById('btnBack').onclick=()=>{location.href='details.html';};
+/* ✅ Smart Back Navigation */
+document.getElementById('btnBack').onclick=()=>{
+  const f=FROM.toLowerCase();
+  if(f==="movie")location.href="movie.html";
+  else if(f==="series")location.href="series.html";
+  else if(f==="index")location.href="index.html";
+  else location.href="details.html";
+};
 
 /* Brightness */
 let activeDrag=null,startY=0,startVal=0;
