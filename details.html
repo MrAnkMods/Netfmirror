@@ -7,7 +7,33 @@
 <style>
   body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.4}
   .wrap{padding-bottom:60px}
-  
+
+  /* ---- Header ---- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    background:#000;
+    border-bottom:1px solid #111;
+    padding:10px 16px;
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  .backBtn{
+    font-size:20px;
+    font-weight:bold;
+    color:#fff;
+    background:none;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .backBtn:hover{opacity:0.7;}
+  .backBtn span{font-size:15px;color:#ccc;}
+
   /* ---- Header Poster ---- */
   .banner{
     position:relative;
@@ -139,6 +165,11 @@
 </head>
 <body>
 
+
+<div class="topbar">
+  <button class="backBtn" id="backBtn">← <span>Back</span></button>
+</div>
+
 <div class="wrap" id="mainArea"></div>
 <div id="toast">Not available right now</div>
 
@@ -163,6 +194,8 @@ const type = params.get("type") || "movie";
 const id = params.get("id");
 
 const main = document.getElementById("mainArea");
+const backBtn = document.getElementById("backBtn");
+backBtn.onclick = ()=> location.href = "index.html";
 
 function showToast(msg){
   const toast = document.getElementById("toast");

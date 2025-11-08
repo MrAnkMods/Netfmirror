@@ -7,34 +7,97 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 <style>
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;}
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:#111;position:sticky;top:0;z-index:10;}
-header img{height:35px;}
-nav a{color:#fff;text-decoration:none;margin:0 10px;font-weight:bold;}
-h1{color:#e50914;padding:20px 20px 0 20px;font-size:26px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;padding:20px;}
-.grid img{width:100%;height:200px;object-fit:cover;border-radius:8px;cursor:pointer;transition:transform .25s;}
-.grid img:hover{transform:scale(1.05);}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#000;
+  color:#fff;
+}
+
+/* ---- Header ---- */
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 20px;
+  background:#000;
+  position:sticky;
+  top:0;
+  z-index:10;
+  border-bottom:1px solid #111;
+}
+
+/* Red “N” Logo */
+.brand{
+  font-weight:900;
+  font-size:28px;
+  color:#e50914;
+  letter-spacing:1px;
+  margin-right:8px;
+}
+
+/* Navigation Links */
+nav{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+nav a{
+  color:#fff;
+  text-decoration:none;
+  font-weight:bold;
+  transition:opacity .3s;
+}
+
+nav a:hover{
+  opacity:.7;
+}
+
+/* ---- Page Title ---- */
+h1{
+  color:#e50914;
+  padding:20px 20px 0 20px;
+  font-size:26px;
+}
+
+/* ---- Series Grid ---- */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:14px;
+  padding:20px;
+}
+
+.grid img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+  border-radius:8px;
+  cursor:pointer;
+  transition:transform .25s;
+}
+
+.grid img:hover{
+  transform:scale(1.05);
+}
 </style>
 </head>
 <body>
 
-<header style="background:#000; display:flex; align-items:center; padding:10px;">
-  <!-- Red NMix Logo (Netflix Style) -->
-  <h1 style="color:#e50914; font-size:24px; font-weight:bold; font-family:Arial Black, sans-serif; margin:0 15px 0 10px;">
-    NMix
-  </h1>
 
-  <!-- Navigation -->
-  <nav style="display:flex; gap:20px;">
-    <a href="index.html" style="color:#fff; text-decoration:none; font-weight:bold;">Home</a>
-    <a href="movie.html" style="color:#fff; text-decoration:none; font-weight:bold;">Movies</a>
-    <a href="series.html" style="color:#fff; text-decoration:none; font-weight:bold;">Series</a>
+<header>
+  <nav>
+    <div class="brand">N</div>
+    <a href="index.html">Home</a>
+    <a href="movie.html">Movies</a>
+    <a href="series.html">Series</a>
   </nav>
 </header>
 
 <h1>All Series</h1>
 <div class="grid" id="seriesGrid"></div>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -57,7 +120,8 @@ const seriesGrid=document.getElementById("seriesGrid");
 onValue(ref(db,"series"),snap=>{
   seriesGrid.innerHTML="";
   snap.forEach(s=>{
-    const id=s.key;const d=s.val();
+    const id=s.key;
+    const d=s.val();
     const img=document.createElement("img");
     img.src=d.poster||"assets/banner2.jpg";
     img.title=d.title;

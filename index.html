@@ -43,9 +43,51 @@
   .nav-links a{color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:6px 8px;border-radius:6px;opacity:.95;}
   .nav-links a:hover{background:#111;}
 
-  .profile{width:40px;height:40px;border-radius:8px;overflow:hidden;background:#111;
-           display:flex;align-items:center;justify-content:center;margin-right:0;}
-  .profile img{width:40px;height:40px;object-fit:cover;border-radius:8px;}
+  /* Search Box */
+  .search-container{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  #searchInput{
+    background:#111;
+    border:1px solid #222;
+    color:#fff;
+    border-radius:6px;
+    padding:6px 10px;
+    width:150px;
+    font-size:14px;
+    display:none;
+  }
+
+  .search-btn{
+    background:transparent;
+    color:#fff;
+    font-size:16px;
+    font-weight:bold;
+    border:none;
+    cursor:pointer;
+  }
+
+  .profile{
+    width:40px;
+    height:40px;
+    border-radius:8px;
+    overflow:hidden;
+    background:#111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-left:6px;
+  }
+
+  .profile img{
+    width:40px;
+    height:40px;
+    object-fit:cover;
+    border-radius:8px;
+  }
 
   /* ---- Hero Section ---- */
   .container{padding:14px}
@@ -66,6 +108,21 @@
   .card img{width:140px;height:200px;object-fit:cover;border-radius:8px;border:2px solid rgba(255,255,255,.06);}
   .card .meta{margin-top:6px;font-size:13px;color:var(--muted);text-align:center;}
 
+  /* ---- Search Results ---- */
+  #searchResults{
+    display:none;
+    padding:15px;
+  }
+  #searchResults h2{
+    font-size:18px;
+    margin-bottom:8px;
+  }
+  #searchList{
+    display:flex;
+    gap:12px;
+    overflow:auto;
+  }
+
   footer{padding:20px;text-align:center;color:#888;border-top:1px solid #111;margin-top:34px;}
 
   @media (max-width:720px){
@@ -77,22 +134,27 @@
 </head>
 <body>
 
-<!-- ✅ Header -->
 <header>
   <nav>
     <div class="brand"><div class="Nlogo">N</div></div>
+
     <div class="nav-links">
       <a href="index.html">Home</a>
       <a href="movie.html">Movies</a>
       <a href="series.html">Series</a>
     </div>
-    <div class="profile" id="profileBtn" title="Profile">
-      <img src="https://i.ibb.co/sJHpnWNn/IMG-20251107-102917-631.jpg" alt="Profile Avatar">
+
+    <div class="search-container">
+      <button class="search-btn" id="searchToggle">Search</button>
+      <input type="text" id="searchInput" placeholder="Search...">
+      <div class="profile" id="profileBtn" title="Profile">
+        <img src="https://i.ibb.co/sJHpnWNn/IMG-20251107-102917-631.jpg" alt="Profile Avatar">
+      </div>
     </div>
   </nav>
 </header>
 
-<!-- ✅ Hero Section -->
+
 <div class="container">
   <div class="hero" id="hero">
     <img id="heroImg" alt="banner"/>
@@ -105,7 +167,13 @@
     </div>
   </div>
 
-  <!-- ✅ All Categories (As per screenshot) -->
+  <!-- Search Results Section -->
+  <div id="searchResults">
+    <h2>Search Results</h2>
+    <div id="searchList"></div>
+  </div>
+
+  <!-- Category Sections -->
   <section><h2>Top Searches</h2><div class="row" id="topsearchRow"></div></section>
   <section><h2>Films set in India</h2><div class="row" id="indianRow"></div></section>
   <section><h2>Exciting TV Shows</h2><div class="row" id="excitingRow"></div></section>
@@ -126,7 +194,6 @@
   <footer>© 2025 NMix Studio — All Rights Reserved</footer>
 </div>
 
-<!-- ✅ Firebase Logic -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
@@ -145,6 +212,11 @@ const db = getDatabase(app);
 
 const heroImg = document.getElementById("heroImg");
 const heroPlay = document.getElementById("heroPlay");
+const heroInfo = document.getElementById("heroInfo");
+const searchToggle = document.getElementById("searchToggle");
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+const searchList = document.getElementById("searchList");
 
 const sections = {
   topsearch: topsearchRow,
@@ -176,13 +248,10 @@ function makeCard(id, d){
   img.alt = d.title || "";
   img.onclick = ()=> window.location = `details.html?type=${d.type || "movie"}&id=${id}`;
   c.appendChild(img);
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  meta.textContent = d.title || "";
-  c.appendChild(meta);
   return c;
 }
 
+// Fetch movies
 onValue(ref(db, "movies"), snap => {
   Object.values(sections).forEach(row => row.innerHTML = "");
   bannerItems = [];
@@ -213,7 +282,12 @@ onValue(ref(db, "movies"), snap => {
         heroImg.style.display = "none";
       }
       setTimeout(()=>{
-        heroPlay.onclick = ()=> window.location = `details.html?type=${item.type || "movie"}&id=${item.id}`;
+        if(item.type === "series"){
+          heroPlay.onclick = ()=> window.location = `details.html?type=series&id=${item.id}`;
+        } else {
+          heroPlay.onclick = ()=> window.location = `player.html?src=${encodeURIComponent(item.video||'')}&title=${encodeURIComponent(item.title||'')}&poster=${encodeURIComponent(item.poster||'')}`;
+        }
+        heroInfo.onclick = ()=> window.location = `details.html?type=${item.type||'movie'}&id=${item.id}`;
         heroImg.style.opacity = 1;
       },300);
     };
@@ -222,6 +296,26 @@ onValue(ref(db, "movies"), snap => {
       i = (i+1) % bannerItems.length;
       showBanner();
     },4500);
+  }
+});
+
+// Toggle search visibility
+searchToggle.addEventListener("click", ()=>{
+  searchInput.style.display = (searchInput.style.display === "block") ? "none" : "block";
+  searchInput.focus();
+});
+
+// Search Firebase
+searchInput.addEventListener("input", ()=>{
+  const val = searchInput.value.trim().toLowerCase();
+  if(!val){searchResults.style.display = "none";searchList.innerHTML = "";return;}
+  searchList.innerHTML = "";
+  searchResults.style.display = "block";
+  for(const [id,d] of Object.entries(allItems)){
+    if((d.title||"").toLowerCase().includes(val)){
+      const c = makeCard(id,d);
+      searchList.appendChild(c);
+    }
   }
 });
 </script>
