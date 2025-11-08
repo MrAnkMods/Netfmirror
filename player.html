@@ -119,10 +119,22 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.2);}
 </div>
 
 <script>
+/*
+ URL params supported:
+  - src  => video url
+  - title => video title
+  - from => index | details | movie | series
+  - id   => item id (when coming from details/movie/series)
+  - type => movie | series (for details page)
+*/
+
 const qs=new URLSearchParams(location.search);
 const SRC=qs.get('src') || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
 const TITLE=qs.get('title') || "Untitled";
-const FROM=qs.get('from') || "index"; // 👈 identify source page
+const FROM=qs.get('from') || "index"; // identify source page
+const ITEM_ID = qs.get('id') || null;
+const ITEM_TYPE = qs.get('type') || null;
+
 const wrap=document.getElementById('wrap');
 const vid=document.getElementById('vid');
 const loader=document.getElementById('loader');
@@ -137,6 +149,7 @@ const fsBtn=document.getElementById('fsBtn');
 const zoomBtn=document.getElementById('zoomBtn');
 const back10=document.getElementById('back10');
 const fwd10=document.getElementById('fwd10');
+
 document.getElementById('titleTop').textContent=TITLE;
 vid.src=SRC;
 
@@ -145,7 +158,7 @@ vid.addEventListener("canplay",()=>{
   loader.style.display="none";
   vid.classList.add("show");
   try{vid.play().catch(()=>{});}catch(e){}
-  enterFullscreen(); // ✅ auto fullscreen
+  enterFullscreen();
 });
 
 /* Play/Pause */
@@ -172,31 +185,66 @@ unlockBtn.onclick=()=>{locked=false;wrap.classList.remove('hide');unlockBtn.clas
 let fitMode=true;
 zoomBtn.onclick=()=>{fitMode=!fitMode;vid.style.objectFit=fitMode?'contain':'cover';showUI();};
 
-/* ✅ Fullscreen (Immersive fix) */
+/* Fullscreen / Immersive */
 function enterFullscreen(){
+  // request full screen
   if(!document.fullscreenElement){
     wrap.requestFullscreen?.().catch(()=>{});
-    if(screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
-    document.documentElement.style.height="100%";
-    setTimeout(()=>{try{window.scrollTo(0,1);}catch(e){}},300);
   }
+  // try to lock orientation to landscape if available
+  if(screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
+  // small scroll hack for some devices
+  document.documentElement.style.height="100%";
+  setTimeout(()=>{try{window.scrollTo(0,1);}catch(e){}},300);
 }
-fsBtn.onclick=()=>{if(!document.fullscreenElement){enterFullscreen();}else{document.exitFullscreen?.();}showUI();};
+fsBtn.onclick=()=>{ if(!document.fullscreenElement){ enterFullscreen(); } else { document.exitFullscreen?.(); } showUI(); };
 
 /* Auto-hide */
 let timer;
-function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
+function showUI(){ if(locked) return; wrap.classList.remove('hide'); clearTimeout(timer); timer=setTimeout(()=>wrap.classList.add('hide'),3000); }
 ['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
 showUI();
 
-/* ✅ Smart Back Navigation */
-document.getElementById('btnBack').onclick=()=>{
-  switch(FROM){
-    case 'details': location.href='details.html'; break;
-    case 'movie': location.href='movie.html'; break;
-    case 'series': location.href='series.html'; break;
-    default: location.href='index.html'; break;
+/* SMART BACK BUTTON:
+ - If 'from=details' AND id present -> go to details.html?type=...&id=...
+ - If 'from=movie'  AND id present -> go to movie.html? id=...
+ - If 'from=series' AND id present -> go to series.html? id=...
+ - Else fallback to index.html / movie.html / series.html
+*/
+document.getElementById('btnBack').onclick = () => {
+  // prefer preserved history if available
+  if (document.referrer && document.referrer.includes(location.origin)) {
+    // If user navigated from same origin and history length > 1, go back
+    try {
+      if (history.length > 1) { history.back(); return; }
+    } catch(e){}
   }
+
+  // explicit routing
+  if (FROM === 'details') {
+    if (ITEM_ID) {
+      const t = ITEM_TYPE ? `type=${encodeURIComponent(ITEM_TYPE)}` : '';
+      const q = `${t ? t + '&' : ''}id=${encodeURIComponent(ITEM_ID)}`;
+      location.href = `details.html?${q}`;
+      return;
+    } else {
+      location.href = 'details.html';
+      return;
+    }
+  }
+
+  if (FROM === 'movie') {
+    if (ITEM_ID) { location.href = `movie.html?id=${encodeURIComponent(ITEM_ID)}`; return; }
+    location.href = 'movie.html'; return;
+  }
+
+  if (FROM === 'series') {
+    if (ITEM_ID) { location.href = `series.html?id=${encodeURIComponent(ITEM_ID)}`; return; }
+    location.href = 'series.html'; return;
+  }
+
+  // default
+  location.href = 'index.html';
 };
 </script>
 </body>
