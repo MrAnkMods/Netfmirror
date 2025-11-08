@@ -43,22 +43,12 @@
   .nav-links a{color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:6px 8px;border-radius:6px;opacity:.95;}
   .nav-links a:hover{background:#111;}
 
-  /* Search Box */
+  /* Search Container */
   .search-container{
     display:flex;
     align-items:center;
     gap:10px;
-  }
-
-  #searchInput{
-    background:#111;
-    border:1px solid #222;
-    color:#fff;
-    border-radius:6px;
-    padding:6px 10px;
-    width:150px;
-    font-size:14px;
-    display:none;
+    position:relative;
   }
 
   .search-btn{
@@ -66,6 +56,44 @@
     color:#fff;
     font-size:16px;
     font-weight:bold;
+    border:none;
+    cursor:pointer;
+  }
+
+  /* Transparent Search Overlay */
+  .search-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.85);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+  }
+
+  .search-box{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:8px;
+    padding:12px 16px;
+    width:80%;
+    max-width:400px;
+    color:#fff;
+    font-size:16px;
+    outline:none;
+    backdrop-filter:blur(10px);
+  }
+
+  .close-search{
+    position:absolute;
+    top:20px;
+    right:20px;
+    font-size:20px;
+    background:transparent;
+    color:#fff;
     border:none;
     cursor:pointer;
   }
@@ -146,7 +174,6 @@
 
     <div class="search-container">
       <button class="search-btn" id="searchToggle">Search</button>
-      <input type="text" id="searchInput" placeholder="Search...">
       <div class="profile" id="profileBtn" title="Profile">
         <img src="https://i.ibb.co/sJHpnWNn/IMG-20251107-102917-631.jpg" alt="Profile Avatar">
       </div>
@@ -154,6 +181,11 @@
   </nav>
 </header>
 
+<!-- Transparent Search Overlay -->
+<div class="search-overlay" id="searchOverlay">
+  <button class="close-search" id="closeSearch">✕</button>
+  <input type="text" id="searchBox" class="search-box" placeholder="Search for movies or series...">
+</div>
 
 <div class="container">
   <div class="hero" id="hero">
@@ -213,8 +245,10 @@ const db = getDatabase(app);
 const heroImg = document.getElementById("heroImg");
 const heroPlay = document.getElementById("heroPlay");
 const heroInfo = document.getElementById("heroInfo");
+const searchOverlay = document.getElementById("searchOverlay");
 const searchToggle = document.getElementById("searchToggle");
-const searchInput = document.getElementById("searchInput");
+const closeSearch = document.getElementById("closeSearch");
+const searchBox = document.getElementById("searchBox");
 const searchResults = document.getElementById("searchResults");
 const searchList = document.getElementById("searchList");
 
@@ -240,6 +274,19 @@ const sections = {
 let bannerItems = [];
 let allItems = {};
 
+// ---- Search Overlay Toggle ----
+searchToggle.addEventListener("click", () => {
+  searchOverlay.style.display = "flex";
+  searchBox.focus();
+});
+
+closeSearch.addEventListener("click", () => {
+  searchOverlay.style.display = "none";
+  searchBox.value = "";
+  searchResults.style.display = "none";
+});
+
+// ---- Firebase Movie Loader ----
 function makeCard(id, d){
   const c = document.createElement("div");
   c.className = "card";
@@ -251,19 +298,15 @@ function makeCard(id, d){
   return c;
 }
 
-// Fetch movies
 onValue(ref(db, "movies"), snap => {
   Object.values(sections).forEach(row => row.innerHTML = "");
   bannerItems = [];
-
   snap.forEach(s=>{
     const id = s.key;
     const d = s.val();
     allItems[id] = d;
     const cat = (d.category || d.section || "").toLowerCase();
-
     if(d.banner || d.poster) bannerItems.push({id, ...d});
-
     for (let key in sections) {
       if (cat.includes(key)) sections[key].appendChild(makeCard(id,d));
     }
@@ -299,18 +342,12 @@ onValue(ref(db, "movies"), snap => {
   }
 });
 
-// Toggle search visibility
-searchToggle.addEventListener("click", ()=>{
-  searchInput.style.display = (searchInput.style.display === "block") ? "none" : "block";
-  searchInput.focus();
-});
-
-// Search Firebase
-searchInput.addEventListener("input", ()=>{
-  const val = searchInput.value.trim().toLowerCase();
-  if(!val){searchResults.style.display = "none";searchList.innerHTML = "";return;}
-  searchList.innerHTML = "";
-  searchResults.style.display = "block";
+// ---- Search Filter ----
+searchBox.addEventListener("input", ()=>{
+  const val = searchBox.value.trim().toLowerCase();
+  if(!val){searchResults.style.display="none";searchList.innerHTML="";return;}
+  searchList.innerHTML="";
+  searchResults.style.display="block";
   for(const [id,d] of Object.entries(allItems)){
     if((d.title||"").toLowerCase().includes(val)){
       const c = makeCard(id,d);
