@@ -39,6 +39,7 @@
   .backBtn:hover{opacity:0.7;}
   .backBtn span{font-size:15px;color:#ccc;}
 
+  /* Poster Banner */
   .banner{
     position:relative;
     width:100%;
@@ -51,22 +52,25 @@
     object-fit:cover;
     filter:brightness(0.65);
   }
-  .overlay{
-    position:absolute;
-    bottom:20px;
-    left:20px;
-    right:20px;
+
+  /* Title + Meta */
+  .infoBox{
+    padding:16px 20px;
+    text-align:center;
   }
   .title{font-size:24px;font-weight:bold;margin-bottom:4px;}
   .meta{font-size:14px;color:#ccc;margin-bottom:14px;}
 
-  /* Netflix style stacked buttons */
+  /* Netflix-style stacked buttons below poster */
   .btns{
     display:flex;
     flex-direction:column;
+    align-items:center;
     gap:10px;
     width:100%;
-    max-width:90%;
+    padding:0 20px;
+    margin-top:-10px;
+    margin-bottom:20px;
   }
   .btn{
     border:none;
@@ -76,6 +80,8 @@
     cursor:pointer;
     padding:12px 0;
     width:100%;
+    max-width:350px;
+    text-align:center;
   }
   .btn.play{
     background:#fff;
@@ -89,19 +95,32 @@
   .btn.play:hover{background:#e5e5e5;}
   .btn.download:hover{background:#444;}
 
-  .desc{padding:16px 20px;color:#bbb;font-size:15px;}
+  /* Description */
+  .desc{
+    padding:10px 20px;
+    color:#bbb;
+    font-size:15px;
+    text-align:left;
+  }
 
+  /* Episodes section */
   .episodes{padding:10px 20px;}
   .episodes h3{margin:10px 0;font-size:18px;}
   .ep{
-    display:flex;align-items:center;justify-content:space-between;
-    background:#111;border-radius:8px;padding:10px;margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#111;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:8px;
   }
   .ep .left{display:flex;align-items:center;gap:10px;}
   .ep img{width:100px;height:60px;object-fit:cover;border-radius:6px;}
   .ep .info{font-size:14px;}
   .ep button{border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer;}
 
+  /* Suggested section */
   .suggested{padding:10px 20px;}
   .suggested h3{font-size:18px;margin:10px 0;}
   .suggestRow{display:flex;gap:10px;overflow:auto;padding-bottom:10px;}
@@ -181,24 +200,33 @@ if(!id){
       return; 
     }
 
-    // ✅ Description fallback fix
-    const descText = d.description || d.decreption || d.deception || d.desc || "No description available.";
+
+    let descText = d.description || d.decreption || d.deception || d.desc || "";
+    if(!descText && d.seasons?.length){
+      descText = d.seasons[0].description || d.seasons[0].desc || "No description available.";
+    }
+    if(!descText) descText = "No description available.";
+
 
     let html = `
       <div class="banner">
         <img src="${d.poster || 'assets/banner1.jpg'}">
-        <div class="overlay">
-          <div class="title">${d.title || ''}</div>
-          <div class="meta">${d.year || ''} • ${d.category || d.section || ''}</div>
-          <div class="btns">
-            <button class="btn play" id="playBtn">▶ Play</button>
-            <button class="btn download" id="downloadBtn">⬇ Download</button>
-          </div>
-        </div>
       </div>
+
+      <div class="infoBox">
+        <div class="title">${d.title || ''}</div>
+        <div class="meta">${d.year || ''} • ${d.category || d.section || ''}</div>
+      </div>
+
+      <div class="btns">
+        <button class="btn play" id="playBtn">▶ Play</button>
+        <button class="btn download" id="downloadBtn">⬇ Download</button>
+      </div>
+
       <div class="desc">${descText}</div>
     `;
 
+    
     if(type === "series" && d.seasons?.length){
       html += `<div class="episodes"><h3>Episodes</h3>`;
       d.seasons.forEach((s)=>{
@@ -216,10 +244,15 @@ if(!id){
       html += `</div>`;
     }
 
-    html += `<div class="suggested"><h3>${type === 'series' ? 'Similar Series' : 'More Like This'}</h3><div class="suggestRow" id="suggestRow"></div></div>`;
+    html += `
+      <div class="suggested">
+        <h3>${type === 'series' ? 'Similar Series' : 'More Like This'}</h3>
+        <div class="suggestRow" id="suggestRow"></div>
+      </div>
+    `;
     main.innerHTML = html;
 
-    // ✅ Play Button Fix (fetches correct video)
+    // ▶ Play Button — get correct video
     const playBtn = document.getElementById("playBtn");
     playBtn.onclick = ()=>{
       let videoUrl = d.video || d.videourl || d.link || "";
@@ -232,7 +265,7 @@ if(!id){
 
       if(!videoUrl){
         showToast("No video available");
-        console.warn("No video URL found in Firebase for item:", id);
+        console.warn("No video URL found for:", id);
         return;
       }
 
@@ -244,17 +277,15 @@ if(!id){
       window.location = url;
     };
 
-    // 🔽 Download button (works if video link present)
-    document.getElementById("downloadBtn").onclick = ()=>{
+
+    const downloadBtn = document.getElementById("downloadBtn");
+    downloadBtn.onclick = ()=>{
       let link = d.video || d.videourl || d.link || "";
-      if(!link){
-        showToast("Download not available");
-        return;
-      }
+      if(!link){ showToast("Download not available"); return; }
       window.open(link, "_blank");
     };
 
-    // ▶ Each Episode play button
+    // ▶ Episode buttons
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
@@ -272,6 +303,7 @@ if(!id){
     loadSuggestions(node, d.category || d.section || '', id);
   });
 }
+
 
 function loadSuggestions(node, category, currentId){
   const suggestRow = document.getElementById("suggestRow");
