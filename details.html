@@ -59,7 +59,7 @@
   .title{font-size:23px;font-weight:bold;margin-bottom:4px;}
   .meta{font-size:14px;color:#ccc;margin-bottom:14px;}
 
-  /* Buttons */
+  /* Buttons centered */
   .btns{
     display:flex;
     flex-direction:column;
@@ -98,7 +98,7 @@
     text-align:left;
   }
 
-  /* Episodes (Netflix Style) */
+  /* Netflix-style Episodes */
   .episodes{padding:0;margin-top:10px;}
   .episodes h3{
     font-size:18px;
@@ -140,42 +140,12 @@
   }
   .ep button:hover{color:#e50914;}
 
-  /* Suggested Section (Netflix Carousel) */
-  .suggested {
-    margin-top:15px;
-    padding:0;
-  }
-  .suggested h3 {
-    font-size:18px;
-    margin:10px 14px;
-  }
-  .suggestRow {
-    display:flex;
-    overflow-x:auto;
-    gap:10px;
-    padding:10px 14px 20px 14px;
-    scroll-snap-type:x mandatory;
-  }
-  .suggestRow::-webkit-scrollbar {display:none;}
-  .sCard {
-    flex:0 0 auto;
-    width:130px;
-    border-radius:10px;
-    overflow:hidden;
-    scroll-snap-align:start;
-    transition:transform 0.3s ease, filter 0.3s ease;
-    cursor:pointer;
-  }
-  .sCard img {
-    width:100%;
-    height:190px;
-    object-fit:cover;
-    border-radius:10px;
-  }
-  .sCard:hover {
-    transform:scale(1.05);
-    filter:brightness(1.1);
-  }
+  /* Suggested section */
+  .suggested{padding:10px 12px;}
+  .suggested h3{font-size:18px;margin:10px 0;}
+  .suggestRow{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;}
+  .sCard{min-width:130px;background:#111;border-radius:8px;overflow:hidden;cursor:pointer;}
+  .sCard img{width:130px;height:180px;object-fit:cover;}
 
   /* Toast */
   #toast {
@@ -251,12 +221,14 @@ if(!id){
       return; 
     }
 
+    // ✅ Description fix
     let descText = d.description || d.decreption || d.deception || d.desc || "";
     if(!descText && d.seasons?.length){
       descText = d.seasons[0].description || d.seasons[0].desc || "No description available.";
     }
     if(!descText) descText = "No description available.";
 
+    // ✅ HTML layout
     let html = `
       <div class="banner">
         <img src="${d.poster || 'assets/banner1.jpg'}">
@@ -275,6 +247,7 @@ if(!id){
       <div class="desc">${descText}</div>
     `;
 
+    // ✅ Netflix-style episodes list
     if(type === "series" && d.seasons?.length){
       html += `<div class="episodes"><h3>Episodes</h3>`;
       d.seasons.forEach((s)=>{
@@ -283,7 +256,9 @@ if(!id){
             <div class="ep">
               <div class="left">
                 <img src="${ep.thumb || d.poster || 'assets/banner1.jpg'}">
-                <div class="info"><b>${ep.epTitle || ('Episode '+(ei+1))}</b><br>${ep.duration || ''}</div>
+                <div class="info">
+                  <b>${ep.epTitle || ('Episode '+(ei+1))}</b><br>${ep.duration || ''}
+                </div>
               </div>
               <button class="epPlay" data-video="${encodeURIComponent(ep.video || '')}">▶</button>
             </div>`;
@@ -301,7 +276,8 @@ if(!id){
     main.innerHTML = html;
 
     // ▶ Play Button
-    document.getElementById("playBtn").onclick = ()=>{
+    const playBtn = document.getElementById("playBtn");
+    playBtn.onclick = ()=>{
       let videoUrl = d.video || d.videourl || d.link || "";
       let titleTxt = d.title || "";
       
@@ -309,24 +285,35 @@ if(!id){
         const firstEp = d.seasons[0].episodes?.[0];
         if(firstEp?.video || firstEp?.link) videoUrl = firstEp.video || firstEp.link;
       }
-      if(!videoUrl){ showToast("No video available"); return; }
-      window.location = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&from=details`;
+
+      if(!videoUrl){
+        showToast("No video available");
+        return;
+      }
+
+      const url = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&from=details`;
+      window.location = url;
     };
 
-    // 🔽 Download Button
-    document.getElementById("downloadBtn").onclick = ()=>{
-      if(type === "movie"){ showToast("Download Not Available"); return; }
+    // 🔽 Download Button Disabled for Movies
+    const downloadBtn = document.getElementById("downloadBtn");
+    downloadBtn.onclick = ()=>{
+      if(type === "movie"){
+        showToast("Download Not Available");
+        return;
+      }
       let link = d.video || d.videourl || d.link || "";
       if(!link){ showToast("Download not available"); return; }
       window.open(link, "_blank");
     };
 
-    // ▶ Episode Play
+    // ▶ Episode Play Buttons
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
         if(!v){ showToast("No video found"); return; }
-        window.location = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&from=details`;
+        const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&from=details`;
+        window.location = playerUrl;
       };
     });
 
@@ -334,7 +321,7 @@ if(!id){
   });
 }
 
-// Netflix-style carousel loader
+// Suggested section loader
 function loadSuggestions(node, category, currentId){
   const suggestRow = document.getElementById("suggestRow");
   if(!suggestRow) return;
