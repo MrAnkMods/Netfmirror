@@ -5,227 +5,46 @@
 <title>NMix — Details</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <style>
-  body {
-    margin:0;
-    background:#000;
-    color:#fff;
-    font-family:Arial,Helvetica,sans-serif;
-    line-height:1.4;
-  }
-  .wrap{padding-bottom:60px;}
-
-  .topbar{
-    display:flex;
-    align-items:center;
-    background:#000;
-    border-bottom:1px solid #111;
-    padding:10px 12px;
-    position:sticky;
-    top:0;
-    z-index:100;
-  }
-  .backBtn{
-    font-size:20px;
-    font-weight:bold;
-    color:#fff;
-    background:none;
-    border:none;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .backBtn span{font-size:15px;color:#ccc;}
-  .backBtn:hover{opacity:0.7;}
-
-  /* Poster */
-  .banner{
-    width:100%;
-    height:250px;
-    overflow:hidden;
-  }
-  .banner img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    filter:brightness(0.7);
-  }
-
-  /* Title & Meta */
-  .infoBox{
-    text-align:center;
-    padding:12px 10px 0 10px;
-  }
-  .title{font-size:23px;font-weight:bold;margin-bottom:4px;}
-  .meta{font-size:14px;color:#ccc;margin-bottom:14px;}
-
-  /* Buttons */
-  .btns{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:10px;
-    width:100%;
-    padding:0 10px;
-  }
-  .btn{
-    border:none;
-    border-radius:4px;
-    font-weight:bold;
-    font-size:16px;
-    cursor:pointer;
-    padding:12px 0;
-    width:90%;
-    max-width:380px;
-  }
-  .btn.play{
-    background:#fff;
-    color:#000;
-  }
-  .btn.download{
-    background:#333;
-    color:#fff;
-    border:1px solid #555;
-  }
-  .btn.play:hover{background:#e5e5e5;}
-  .btn.download:hover{background:#444;}
-
-  /* Description */
-  .desc{
-    color:#bbb;
-    font-size:15px;
-    padding:12px 14px;
-    text-align:left;
-  }
-
-  /* Episodes */
-/* 🎬 Episode List (Netflix Card Style) */
-.episodes {
-  padding:0;
-  margin-top:10px;
-}
-.episodes h3 {
-  font-size:18px;
-  padding:10px 14px;
-  margin:0;
-}
-
-/* 🎞️ Each Episode Card */
-.ep {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  width:90%;                     /* ← Compact card width */
-  margin:8px auto;               /* ← Center align */
-  background:#111;
-  border-radius:8px;             /* ← Rounded corners */
-  padding:10px 12px;
-  border-bottom:0.4px solid rgba(255,255,255,0.07); /* ← Soft, thin border line */
-  transition:transform 0.25s ease, background 0.25s ease;
-}
-.ep:hover {
-  background:#181818;            /* subtle hover effect */
-  transform:scale(1.02);         /* smooth hover zoom */
-}
-
-/* 📺 Left Content (Thumbnail + Info) */
-.ep .left {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex:1;
-}
-.ep img {
-  width:100px;                   /* ← Thumbnail width */
-  height:60px;
-  object-fit:cover;
-  border-radius:6px;
-}
-.ep .info {
-  font-size:14px;
-  color:#ddd;
-  flex:1;
-}
-.ep .info b {
-  color:#fff;
-}
-
-/* ▶ Play Button on Right */
-.ep button {
-  border:none;
-  background:#222;
-  color:#fff;
-  font-size:18px;
-  border-radius:50%;
-  width:38px;
-  height:38px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-.ep button:hover {
-  background:#e50914;
-}
-  /* Suggested Section */
-  .suggested {
-    margin-top:15px;
-    padding:0;
-  }
-  .suggested h3 {
-    font-size:18px;
-    margin:10px 14px;
-  }
-  .suggestRow {
-    display:flex;
-    overflow-x:auto;
-    gap:10px;
-    padding:10px 14px 20px 14px;
-    scroll-snap-type:x mandatory;
-  }
-  .suggestRow::-webkit-scrollbar {display:none;}
-  .sCard {
-    flex:0 0 auto;
-    width:130px;
-    border-radius:10px;
-    overflow:hidden;
-    scroll-snap-align:start;
-    transition:transform 0.3s ease, filter 0.3s ease;
-    cursor:pointer;
-  }
-  .sCard img {
-    width:100%;
-    height:190px;
-    object-fit:cover;
-    border-radius:10px;
-  }
-  .sCard:hover {
-    transform:scale(1.05);
-    filter:brightness(1.1);
-  }
-
-  /* Toast */
-  #toast {
-    visibility: hidden;
-    min-width: 220px;
-    background-color: #e50914;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 10px;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-weight: bold;
-  }
-  #toast.show {
-    visibility: visible;
-    animation: fadein 0.4s, fadeout 0.4s 2.5s;
-  }
-  @keyframes fadein {from {bottom: 0; opacity: 0;}to {bottom: 30px; opacity: 1;}}
-  @keyframes fadeout {from {bottom: 30px; opacity: 1;}to {bottom: 0; opacity: 0;}}
+body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.4;}
+.wrap{padding-bottom:60px;}
+.topbar{display:flex;align-items:center;background:#000;border-bottom:1px solid #111;padding:10px 12px;position:sticky;top:0;z-index:100;}
+.backBtn{font-size:20px;font-weight:bold;color:#fff;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.backBtn span{font-size:15px;color:#ccc;}
+.backBtn:hover{opacity:0.7;}
+.banner{width:100%;height:250px;overflow:hidden;}
+.banner img{width:100%;height:100%;object-fit:cover;filter:brightness(0.7);}
+.infoBox{text-align:center;padding:12px 10px 0 10px;}
+.title{font-size:23px;font-weight:bold;margin-bottom:4px;}
+.meta{font-size:14px;color:#ccc;margin-bottom:14px;}
+.btns{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;padding:0 10px;}
+.btn{border:none;border-radius:4px;font-weight:bold;font-size:16px;cursor:pointer;padding:12px 0;width:90%;max-width:380px;}
+.btn.play{background:#fff;color:#000;}
+.btn.download{background:#333;color:#fff;border:1px solid #555;}
+.btn.play:hover{background:#e5e5e5;}
+.btn.download:hover{background:#444;}
+.desc{color:#bbb;font-size:15px;padding:12px 14px;text-align:left;}
+.episodes{padding:0;margin-top:10px;}
+.episodes h3{font-size:18px;padding:10px 14px;margin:0;display:flex;align-items:center;justify-content:space-between;}
+.episodes select{background:#111;color:#fff;border:1px solid #333;border-radius:4px;padding:5px 10px;font-size:14px;}
+.ep{display:flex;align-items:center;justify-content:space-between;width:90%;margin:8px auto;background:#111;border-radius:8px;padding:10px 12px;border-bottom:0.4px solid rgba(255,255,255,0.07);transition:transform 0.25s ease,background 0.25s ease;}
+.ep:hover{background:#181818;transform:scale(1.02);}
+.ep .left{display:flex;align-items:center;gap:10px;flex:1;}
+.ep img{width:100px;height:60px;object-fit:cover;border-radius:6px;}
+.ep .info{font-size:14px;color:#ddd;flex:1;}
+.ep .info b{color:#fff;}
+.ep button{border:none;background:#222;color:#fff;font-size:18px;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.ep button:hover{background:#e50914;}
+.suggested{margin-top:15px;padding:0;}
+.suggested h3{font-size:18px;margin:10px 14px;}
+.suggestRow{display:flex;overflow-x:auto;gap:10px;padding:10px 14px 20px 14px;scroll-snap-type:x mandatory;}
+.suggestRow::-webkit-scrollbar{display:none;}
+.sCard{flex:0 0 auto;width:130px;border-radius:10px;overflow:hidden;scroll-snap-align:start;transition:transform 0.3s ease,filter 0.3s ease;cursor:pointer;}
+.sCard img{width:100%;height:190px;object-fit:cover;border-radius:10px;}
+.sCard:hover{transform:scale(1.05);filter:brightness(1.1);}
+#toast{visibility:hidden;min-width:220px;background-color:#e50914;color:#fff;text-align:center;border-radius:6px;padding:10px;position:fixed;z-index:1000;left:50%;bottom:30px;transform:translateX(-50%);font-weight:bold;}
+#toast.show{visibility:visible;animation:fadein 0.4s,fadeout 0.4s 2.5s;}
+@keyframes fadein{from{bottom:0;opacity:0;}to{bottom:30px;opacity:1;}}
+@keyframes fadeout{from{bottom:30px;opacity:1;}to{bottom:0;opacity:0;}}
 </style>
 </head>
 <body>
@@ -252,13 +71,11 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
 const params = new URLSearchParams(location.search);
 const type = params.get("type") || "movie";
 const id = params.get("id");
 const main = document.getElementById("mainArea");
-const backBtn = document.getElementById("backBtn");
-backBtn.onclick = ()=> history.back();
+document.getElementById("backBtn").onclick = ()=>history.back();
 
 function showToast(msg){
   const toast = document.getElementById("toast");
@@ -267,127 +84,104 @@ function showToast(msg){
   setTimeout(()=>toast.classList.remove("show"),3000);
 }
 
-if(!id){ 
-  main.innerHTML = "<p style='padding:20px'>No item specified.</p>"; 
-} else {
+if(!id){ main.innerHTML = "<p style='padding:20px'>No item specified.</p>"; }
+else {
   const node = type === "series" ? "series" : "movies";
   onValue(ref(db, node + "/" + id), snap=>{
     const d = snap.val();
-    if(!d){ 
-      main.innerHTML = "<p style='padding:20px'>Item not found.</p>"; 
-      return; 
-    }
+    if(!d){ main.innerHTML = "<p style='padding:20px'>Item not found.</p>"; return; }
 
-    // ✅ Smarter description logic for both movies & series
     let descText = d.description || d.decreption || d.deception || d.desc || "";
-    if(!descText && type === "series") {
-      if (d.overview) descText = d.overview;
-      else if (d.seasons?.length) {
-        descText = d.seasons[0].description || d.seasons[0].desc || d.seasons[0].overview || "";
-      }
+    if(!descText && type === "series" && d.seasons?.length){
+      descText = d.seasons[0].description || d.seasons[0].desc || "";
     }
     if(!descText) descText = "No description available.";
 
-    // ✅ HTML Layout
     let html = `
-      <div class="banner">
-        <img src="${d.poster || 'assets/banner1.jpg'}">
-      </div>
-
-      <div class="infoBox">
-        <div class="title">${d.title || ''}</div>
-        <div class="meta">${d.year || ''} • ${d.category || d.section || ''}</div>
-      </div>
-
-      <div class="btns">
-        <button class="btn play" id="playBtn">▶ Play</button>
-        <button class="btn download" id="downloadBtn">⬇ Download</button>
-      </div>
-
+      <div class="banner"><img src="${d.poster || 'assets/banner1.jpg'}"></div>
+      <div class="infoBox"><div class="title">${d.title || ''}</div><div class="meta">${d.year || ''} • ${d.category || d.section || ''}</div></div>
+      <div class="btns"><button class="btn play" id="playBtn">▶ Play</button><button class="btn download" id="downloadBtn">⬇ Download</button></div>
       <div class="desc">${descText}</div>
     `;
 
-    // ✅ Episodes
     if(type === "series" && d.seasons?.length){
-      html += `<div class="episodes"><h3>Episodes</h3>`;
-      d.seasons.forEach((s)=>{
-        s.episodes?.forEach((ep, ei)=>{
-          html += `
-            <div class="ep">
-              <div class="left">
-                <img src="${ep.thumb || d.poster || 'assets/banner1.jpg'}">
-                <div class="info"><b>${ep.epTitle || ('Episode '+(ei+1))}</b><br>${ep.duration || ''}</div>
-              </div>
-              <button class="epPlay" data-video="${encodeURIComponent(ep.video || '')}">▶</button>
-            </div>`;
-        });
-      });
-      html += `</div>`;
+      html += `<div class="episodes"><h3>Episodes <select id="seasonSelect"></select></h3><div id="epList"></div></div>`;
     }
 
-    html += `
-      <div class="suggested">
-        <h3>${type === 'series' ? 'Similar Series' : 'More Like This'}</h3>
-        <div class="suggestRow" id="suggestRow"></div>
-      </div>
-    `;
+    html += `<div class="suggested"><h3>${type==='series'?'Similar Series':'More Like This'}</h3><div class="suggestRow" id="suggestRow"></div></div>`;
     main.innerHTML = html;
 
-    // ▶ Play Button
     document.getElementById("playBtn").onclick = ()=>{
       let videoUrl = d.video || d.videourl || d.link || "";
-      let titleTxt = d.title || "";
-      if(type === "series" && (!videoUrl) && d.seasons?.length){
+      if(type==="series" && !videoUrl && d.seasons?.length){
         const firstEp = d.seasons[0].episodes?.[0];
-        if(firstEp?.video || firstEp?.link) videoUrl = firstEp.video || firstEp.link;
+        if(firstEp?.video) videoUrl = firstEp.video;
       }
       if(!videoUrl){ showToast("No video available"); return; }
-      window.location = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&from=details`;
+      window.location = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(d.title||'')}&from=details`;
     };
+    document.getElementById("downloadBtn").onclick = ()=>showToast("Download Not Available");
 
-    // 🔽 Download Button Toast Only
-    document.getElementById("downloadBtn").onclick = ()=>{
-      showToast("Download Not Available");
-    };
+    if(type==="series" && d.seasons?.length){
+      const sel = document.getElementById("seasonSelect");
+      d.seasons.forEach((s,i)=>{
+        const opt=document.createElement("option");
+        opt.value=i; opt.textContent=s.name||`Season ${i+1}`;
+        sel.appendChild(opt);
+      });
+      const epList=document.getElementById("epList");
+      function renderEpisodes(si){
+        epList.innerHTML="";
+        const s=d.seasons[si];
+        s.episodes?.forEach((ep,ei)=>{
+          const epTitle=ep.epTitle||`Episode ${ei+1}`;
+          const item=document.createElement("div");
+          item.className="ep";
+          item.innerHTML=`
+            <div class="left">
+              <img src="${ep.thumb||d.poster||'assets/banner1.jpg'}">
+              <div class="info"><b>${epTitle}</b><br>${ep.duration||''}</div>
+            </div>
+            <button class="epPlay" data-video="${encodeURIComponent(ep.video||'')}" data-eptitle="${epTitle}">▶</button>
+          `;
+          epList.appendChild(item);
+        });
+        attachEpEvents();
+      }
+      function attachEpEvents(){
+        document.querySelectorAll(".epPlay").forEach(b=>{
+          b.onclick=(ev)=>{
+            let v=decodeURIComponent(ev.currentTarget.dataset.video||'');
+            if(!v){showToast("No video found");return;}
+            const epTitle=ev.currentTarget.dataset.eptitle||"Episode";
+            const fullTitle=`${d.title||'Series'} — ${epTitle}`;
+            window.location=`player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(fullTitle)}&from=details`;
+          };
+        });
+      }
+      sel.onchange=()=>renderEpisodes(sel.value);
+      renderEpisodes(0);
+    }
 
-    // ▶ Episode Play
-    document.querySelectorAll(".epPlay").forEach(b=>{
-      b.onclick = (ev)=>{
-  let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
-  if(!v){ showToast("No video found"); return; }
-
-  // ✅ Get episode title if available
-  const epTitle = ev.currentTarget.parentElement.querySelector(".info b")?.textContent || "Episode";
-
-  // ✅ Combine Series + Episode name
-  const fullTitle = `${d.title || "Series"} — ${epTitle}`;
-
-  window.location = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(fullTitle)}&from=details`;
-};
-    });
-
-    // Load suggestions
-    loadSuggestions(node, d.category || d.section || '', id);
+    loadSuggestions(node,d.category||d.section||'',id);
   });
 }
 
-// ✅ Suggested section click fix
-function loadSuggestions(node, category, currentId){
-  const suggestRow = document.getElementById("suggestRow");
+function loadSuggestions(node,category,currentId){
+  const suggestRow=document.getElementById("suggestRow");
   if(!suggestRow) return;
-  onValue(ref(db, node), snap=>{
-    suggestRow.innerHTML = "";
+  onValue(ref(db,node),snap=>{
+    suggestRow.innerHTML="";
     snap.forEach(s=>{
-      const sid = s.key;
-      const d = s.val();
-      if(sid === currentId) return;
-      const cat = (d.category || d.section || "").toLowerCase();
+      const sid=s.key;const d=s.val();
+      if(sid===currentId) return;
+      const cat=(d.category||d.section||"").toLowerCase();
       if(cat.includes(category.toLowerCase())){
-        const card = document.createElement("div");
-        card.className = "sCard";
-        const img = document.createElement("img");
-        img.src = d.poster || "";
-        img.onclick = ()=> window.location = `details.html?type=${node}&id=${sid}`;
+        const card=document.createElement("div");
+        card.className="sCard";
+        const img=document.createElement("img");
+        img.src=d.poster||"";
+        img.onclick=()=>window.location=`details.html?type=${node}&id=${sid}`;
         card.appendChild(img);
         suggestRow.appendChild(card);
       }
