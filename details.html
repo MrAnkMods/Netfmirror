@@ -353,10 +353,17 @@ if(!id){
     // ▶ Episode Play
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
-        let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
-        if(!v){ showToast("No video found"); return; }
-        window.location = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&from=details`;
-      };
+  let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
+  if(!v){ showToast("No video found"); return; }
+
+  // ✅ Get episode title if available
+  const epTitle = ev.currentTarget.parentElement.querySelector(".info b")?.textContent || "Episode";
+
+  // ✅ Combine Series + Episode name
+  const fullTitle = `${d.title || "Series"} — ${epTitle}`;
+
+  window.location = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(fullTitle)}&from=details`;
+};
     });
 
     // Load suggestions
