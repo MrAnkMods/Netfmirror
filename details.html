@@ -5,8 +5,14 @@
 <title>NMix — Details</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-  body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.4}
-  .wrap{padding-bottom:60px}
+  body {
+    margin:0;
+    background:#000;
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    line-height:1.4;
+  }
+  .wrap{padding-bottom:60px;}
 
   .topbar{
     display:flex;
@@ -36,7 +42,7 @@
   .banner{
     position:relative;
     width:100%;
-    height:220px;
+    height:230px;
     overflow:hidden;
   }
   .banner img{
@@ -45,20 +51,43 @@
     object-fit:cover;
     filter:brightness(0.65);
   }
-  .overlay{position:absolute;bottom:20px;left:20px;}
-  .title{font-size:24px;font-weight:bold;margin-bottom:6px;}
+  .overlay{
+    position:absolute;
+    bottom:20px;
+    left:20px;
+    right:20px;
+  }
+  .title{font-size:24px;font-weight:bold;margin-bottom:4px;}
   .meta{font-size:14px;color:#ccc;margin-bottom:14px;}
 
-  .btns{display:flex;gap:10px;}
+  /* Netflix style stacked buttons */
+  .btns{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:90%;
+  }
   .btn{
     border:none;
-    border-radius:6px;
+    border-radius:4px;
     font-weight:bold;
-    font-size:15px;
+    font-size:16px;
     cursor:pointer;
+    padding:12px 0;
+    width:100%;
   }
-  .btn.play{background:#fff;color:#000;padding:10px 22px;}
-  .btn.download{background:transparent;border:1px solid #444;color:#fff;padding:10px 22px;}
+  .btn.play{
+    background:#fff;
+    color:#000;
+  }
+  .btn.download{
+    background:#333;
+    color:#fff;
+    border:1px solid #555;
+  }
+  .btn.play:hover{background:#e5e5e5;}
+  .btn.download:hover{background:#444;}
 
   .desc{padding:16px 20px;color:#bbb;font-size:15px;}
 
@@ -152,7 +181,7 @@ if(!id){
       return; 
     }
 
-    // ✅ Smart Description Fallback (handles all spellings)
+    // ✅ Description fallback fix
     const descText = d.description || d.decreption || d.deception || d.desc || "No description available.";
 
     let html = `
@@ -190,21 +219,22 @@ if(!id){
     html += `<div class="suggested"><h3>${type === 'series' ? 'Similar Series' : 'More Like This'}</h3><div class="suggestRow" id="suggestRow"></div></div>`;
     main.innerHTML = html;
 
-    // ▶ Play Button
+    // ✅ Play Button Fix (fetches correct video)
     const playBtn = document.getElementById("playBtn");
     playBtn.onclick = ()=>{
-      let videoUrl = "";
+      let videoUrl = d.video || d.videourl || d.link || "";
       let titleTxt = d.title || "";
-      if(type === "movie" && d.video){
-        videoUrl = d.video;
-      } else if(type === "series" && d.seasons?.length){
+      
+      if(type === "series" && (!videoUrl) && d.seasons?.length){
         const firstEp = d.seasons[0].episodes?.[0];
-        if(firstEp?.video){
-          videoUrl = firstEp.video;
-          titleTxt += " — " + (firstEp.epTitle || "Episode 1");
-        }
+        if(firstEp?.video || firstEp?.link) videoUrl = firstEp.video || firstEp.link;
       }
-      if(!videoUrl){ showToast("No video available"); return; }
+
+      if(!videoUrl){
+        showToast("No video available");
+        console.warn("No video URL found in Firebase for item:", id);
+        return;
+      }
 
       localStorage.setItem("lastId", id);
       localStorage.setItem("lastType", type);
@@ -214,8 +244,17 @@ if(!id){
       window.location = url;
     };
 
-    document.getElementById("downloadBtn").onclick = ()=> showToast("Not available right now");
+    // 🔽 Download button (works if video link present)
+    document.getElementById("downloadBtn").onclick = ()=>{
+      let link = d.video || d.videourl || d.link || "";
+      if(!link){
+        showToast("Download not available");
+        return;
+      }
+      window.open(link, "_blank");
+    };
 
+    // ▶ Each Episode play button
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
