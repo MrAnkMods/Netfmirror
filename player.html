@@ -2,46 +2,70 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>NMix Player (Final)</title>
+<title>NMix — Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
 <style>
-:root{--brand:#e50914;--stroke:#2f2f2f;--ui-scale:1.05;}
+:root{--brand:#e50914;--stroke:#2f2f2f;--ui-scale:1.1;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%;background:#000;overflow:hidden}
-body{font-family:Arial,Helvetica,sans-serif;color:#fff}
+body{font-family:Arial,Helvetica,sans-serif;color:#fff;-webkit-user-select:none;user-select:none}
 .wrap{position:fixed;inset:0;background:#000;width:100vw;height:100vh;overflow:hidden}
-video,iframe{position:absolute;inset:0;width:100%;height:100%;background:#000;border:none;display:none;}
-video.show,iframe.show{display:block;opacity:1;transition:opacity .2s}
+video{position:absolute;inset:0;width:100vw;height:100vh;object-fit:contain;background:#000;opacity:0;transition:opacity .22s}
+video.show{opacity:1}
+
+/* Loader */
 .loader{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;z-index:5;}
 .spinner{width:56px;height:56px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:var(--brand);animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Top bar */
 .topBar{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;z-index:20;}
 .btnIcon{width:40px;height:40px;border-radius:10px;background:rgba(10,10,10,.55);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .titleTop{flex:1;text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px}
+
+/* Center controls */
 .center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--ui-scale));display:flex;gap:44px;align-items:center;z-index:10;}
 .round{width:56px;height:56px;border-radius:50%;border:2px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer;}
+.pp svg{width:42px;height:42px}
+
+/* Progress */
 .progress-container{position:absolute;left:12px;right:12px;bottom:84px;height:10px;z-index:20;}
 .progress{width:100%;height:6px;background:#222;border-radius:6px;position:relative;overflow:hidden}
 .progress span{position:absolute;left:0;top:0;height:100%;width:0;background:var(--brand);}
 input[type=range]{position:absolute;width:100%;top:-6px;height:18px;cursor:pointer;appearance:none;background:transparent;}
 input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:var(--brand);border:none;}
+
+/* Bottom bar */
 .bottom{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:18px;z-index:20;}
 .menuBtn{display:flex;align-items:center;gap:8px;font-size:13px;color:#fff;background:transparent;border:none;cursor:pointer;padding:6px 10px;border-radius:8px}
-.notice{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(229,9,20,.35);padding:6px 12px;border-radius:8px;font-size:13px;display:none;}
-.notice.show{display:block;}
+
+/* Unlock button */
+.unlockBtn{position:absolute;left:50%;bottom:48px;transform:translateX(-50%);background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.22);border-radius:50%;width:48px;height:48px;display:none;align-items:center;justify-content:center;color:#fff;z-index:30;}
+.unlockBtn.show{display:flex;animation:pulse 2s infinite alternate;}
+@keyframes pulse{from{box-shadow:0 0 8px rgba(229,9,20,0.18);}to{box-shadow:0 0 14px rgba(229,9,20,0.36);}}
+
+/* hide when locked */
 .hide .topBar,.hide .center,.hide .progress-container,.hide .bottom{opacity:0;pointer-events:none}
+
+/* Brightness */
+.brightness{position:absolute;left:0;top:0;bottom:0;width:100%;background:rgba(0,0,0,0);pointer-events:none;z-index:8}
+.overlayLabel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.6);padding:8px 12px;border-radius:8px;z-index:40;font-weight:700;display:none;}
+.overlayLabel.show{display:block}
+.zone{position:absolute;top:0;bottom:0;width:34%;z-index:6;}
+.zone.left{left:0}.zone.right{right:0}
 </style>
 </head>
 <body>
 <div class="wrap" id="wrap">
+
   <div class="loader" id="loader"><div class="spinner"></div></div>
-
   <video id="vid" playsinline preload="metadata" controlslist="nodownload noremoteplayback"></video>
-  <iframe id="vdoFrame" allow="encrypted-media; fullscreen" allowfullscreen></iframe>
+  <div class="brightness" id="brightness"></div>
 
-  <div class="notice" id="notice">Secure Stream (DRM Protected)</div>
+  <div class="zone left" id="leftZone"></div>
+  <div class="zone right" id="rightZone"></div>
 
-  <div class="topBar">
+  <div class="topBar" id="topBar">
     <div class="btnIcon" id="btnBack"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
     <div class="titleTop" id="titleTop">Loading…</div>
     <div class="btnIcon" id="fsBtn"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
@@ -60,150 +84,85 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
     <button class="menuBtn" id="lockBtn">Lock</button>
     <button class="menuBtn" id="zoomBtn">Zoom</button>
   </div>
+
+  <button class="unlockBtn" id="unlockBtn"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
+  <div class="overlayLabel" id="ovLabel">50%</div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-/* ====== Use same firebaseConfig as admin page (copy/paste) ====== */
-const firebaseConfig={
-  apiKey:"AIzaSyC4S_DbJCwOyg2akeBmInBYcuBrPvvVrj8",
-  authDomain:"ankmods0.firebaseapp.com",
-  databaseURL:"https://ankmods0-default-rtdb.firebaseio.com",
-  projectId:"ankmods0",
-  storageBucket:"ankmods0.firebasestorage.app",
-  messagingSenderId:"760044029682",
-  appId:"1:760044029682:web:a5c234e03542c309ce726b"
-};
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
-
-/* UI */
+<script>
 const qs=new URLSearchParams(location.search);
-const id = qs.get("id");         // movie item id (from admin Manage -> Play)
-const seriesId = qs.get("seriesId"); // or series id
-const vid=document.getElementById('vid');
-const iframe=document.getElementById('vdoFrame');
-const loader=document.getElementById('loader');
-const notice=document.getElementById('notice');
-const prog=document.getElementById('prog');
-const seek=document.getElementById('seek');
-const pp=document.getElementById('pp');
-const speedBtn=document.getElementById('speedBtn');
-const speedLabel=document.getElementById('speedLabel');
-const lockBtn=document.getElementById('lockBtn');
-const unlockBtn=document.getElementById('unlockBtn');
-const zoomBtn=document.getElementById('zoomBtn');
-const fsBtn=document.getElementById('fsBtn');
-const titleTop=document.getElementById('titleTop');
+const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
+const TITLE=qs.get('title')||"Untitled";
+const FROM=qs.get('from')||localStorage.getItem("lastPage")||"details";
+localStorage.setItem("lastPage",FROM);
 
-/* Helper to load movie by id */
-async function loadMovie(movieId){
-  loader.style.display='flex';
-  const dbRef = ref(db);
-  const snap = await get(child(dbRef, `movies/${movieId}`));
-  if(!snap.exists()){ alert("Movie not found"); loader.style.display='none'; return; }
-  const data = snap.val();
-  titleTop.textContent = data.title || "Untitled";
-  playSource(data.video || data);
-}
+const vid=document.getElementById('vid'),loader=document.getElementById('loader');
+const prog=document.getElementById('prog'),seek=document.getElementById('seek'),pp=document.getElementById('pp');
+const lockBtn=document.getElementById('lockBtn'),unlockBtn=document.getElementById('unlockBtn');
+const speedBtn=document.getElementById('speedBtn'),speedLabel=document.getElementById('speedLabel');
+const zoomBtn=document.getElementById('zoomBtn'),fsBtn=document.getElementById('fsBtn');
+const back10=document.getElementById('back10'),fwd10=document.getElementById('fwd10');
+const brightnessEl=document.getElementById('brightness'),ovLabel=document.getElementById('ovLabel');
+document.getElementById('titleTop').textContent=TITLE;vid.src=SRC;
 
-/* Helper to load series (opens first episode by default) */
-async function loadSeries(sid){
-  loader.style.display='flex';
-  const dbRef = ref(db);
-  const snap = await get(child(dbRef, `series/${sid}`));
-  if(!snap.exists()){ alert("Series not found"); loader.style.display='none'; return; }
-  const data = snap.val();
-  titleTop.textContent = data.title || "Untitled Series";
-  // pick first season -> first episode
-  const seasons = data.seasons || [];
-  if(seasons.length && seasons[0].episodes && seasons[0].episodes.length){
-    const ep = seasons[0].episodes[0];
-    playSource(ep.video);
-  } else {
-    loader.style.display='none';
-    alert("No episodes found");
-  }
-}
+/* Loader */
+vid.addEventListener("canplay",()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});enterFullscreen();});
+vid.addEventListener("waiting",()=>loader.style.display='flex');
+vid.addEventListener("playing",()=>loader.style.display='none');
 
-/* Play source auto-detect */
-function playSource(src){
-  // if object passed (guard)
-  if(typeof src === "object"){ src = src.video || ""; }
+/* Play/Pause */
+function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
+function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
+pp.onclick=toggle;vid.onclick=toggle;
 
-  // set UI
-  loader.style.display='none';
-  iframe.classList.remove('show');
-  vid.classList.remove('show');
-  notice.classList.remove('show');
+/* Seek */
+back10.onclick=()=>{if(vid.readyState>0)vid.currentTime=Math.max(vid.currentTime-10,0);showUI();};
+fwd10.onclick=()=>{if(vid.readyState>0)vid.currentTime=Math.min(vid.currentTime+10,vid.duration);showUI();};
+vid.addEventListener('timeupdate',()=>{if(vid.duration){prog.style.width=(vid.currentTime/vid.duration*100)+'%';seek.max=vid.duration;seek.value=vid.currentTime;}});
+seek.addEventListener('input',()=>{vid.currentTime=seek.value;showUI();});
 
-  if(!src){ alert("No source URL"); return; }
+/* Speed */
+let speeds=[0.5,1,1.5,2],si=1;
+speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();};
 
-  if(src.includes("vdocipher.com")){
-    // VdoCipher player page → use iframe
-    iframe.src = src;
-    iframe.classList.add('show');
-    notice.classList.add('show');
-    // hide native controls
-    document.querySelector('.center').style.display='none';
-    document.querySelector('.progress-container').style.display='none';
-    document.querySelector('.bottom').style.display='none';
-  } else {
-    // assume direct playable (mp4 / m3u8 etc.)
-    vid.src = src;
-    vid.classList.add('show');
-    // show controls
-    document.querySelector('.center').style.display='';
-    document.querySelector('.progress-container').style.display='';
-    document.querySelector('.bottom').style.display='';
-    vid.addEventListener("canplay",()=>{ loader.style.display='none'; vid.play().catch(()=>{}); });
-    vid.addEventListener("waiting",()=>loader.style.display='flex');
-    vid.addEventListener("playing",()=>loader.style.display='none');
-  }
-}
-
-/* If id or seriesId passed load accordingly, else try src param (direct link) */
-if(id){ loadMovie(id); }
-else if(seriesId){ loadSeries(seriesId); }
-else {
-  const src = qs.get('src');
-  const title = qs.get('title') || 'Untitled';
-  titleTop.textContent = title;
-  if(src) playSource(decodeURIComponent(src));
-  else { loader.style.display='none'; alert("No source provided"); }
-}
-
-/* basic UI controls for video mode */
-function setPPIcon(p){ pp.innerHTML = p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>'; }
-function toggle(){ if(vid.paused){ vid.play(); setPPIcon(false); } else { vid.pause(); setPPIcon(true); } showUI(); }
-pp.onclick = toggle; vid.onclick = toggle;
-
-document.getElementById('back10').onclick = ()=>{ if(!vid) return; vid.currentTime = Math.max(vid.currentTime-10,0); showUI(); };
-document.getElementById('fwd10').onclick = ()=>{ if(!vid) return; vid.currentTime = Math.min(vid.currentTime+10,vid.duration||1); showUI(); };
-
-vid.addEventListener('timeupdate', ()=>{ if(vid.duration){ prog.style.width = (vid.currentTime/vid.duration*100)+'%'; seek.max = vid.duration; seek.value = vid.currentTime; } });
-seek.addEventListener('input', ()=>{ vid.currentTime = seek.value; showUI(); });
-
-let speeds=[0.5,1,1.5,2], si=1;
-speedBtn.onclick = ()=>{ si=(si+1)%speeds.length; vid.playbackRate = speeds[si]; speedLabel.textContent = speeds[si]+'x'; showUI(); };
-
+/* Lock */
 let locked=false;
-lockBtn.onclick = ()=>{ locked=true; document.getElementById('wrap').classList.add('hide'); /* unlock btn not shown here */ };
-let fit=true;
-zoomBtn.onclick = ()=>{ fit=!fit; vid.style.objectFit = fit?'contain':'cover'; showUI(); };
+lockBtn.onclick=()=>{locked=true;document.getElementById('wrap').classList.add('hide');unlockBtn.classList.add('show');};
+unlockBtn.onclick=()=>{locked=false;document.getElementById('wrap').classList.remove('hide');unlockBtn.classList.remove('show');showUI();};
 
-function enterFullscreen(){ if(!document.fullscreenElement) document.getElementById('wrap').requestFullscreen().catch(()=>{}); else document.exitFullscreen?.(); }
-fsBtn.onclick = enterFullscreen;
+/* Zoom */
+let fit=true;zoomBtn.onclick=()=>{fit=!fit;vid.style.objectFit=fit?'contain':'cover';showUI();};
 
-/* auto-hide UI */
-let timer; function showUI(){ if(locked) return; document.getElementById('wrap').classList.remove('hide'); clearTimeout(timer); timer=setTimeout(()=>document.getElementById('wrap').classList.add('hide'),3000); }
-['mousemove','click','touchstart'].forEach(e=>document.getElementById('wrap').addEventListener(e,showUI));
+/* Fullscreen */
+function enterFullscreen(){if(!document.fullscreenElement){document.getElementById('wrap').requestFullscreen().catch(()=>{});screen.orientation?.lock('landscape').catch(()=>{});}}
+fsBtn.onclick=()=>{if(!document.fullscreenElement)enterFullscreen();else document.exitFullscreen?.();showUI();};
+
+/* Auto-hide */
+let timer;function showUI(){if(locked)return;document.getElementById('wrap').classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>document.getElementById('wrap').classList.add('hide'),3000);}['mousemove','click','touchstart'].forEach(e=>document.getElementById('wrap').addEventListener(e,showUI));
 showUI();
 
-/* back button */
-document.getElementById('btnBack').onclick = ()=>{ if(history.length>1) history.back(); else location.href='index.html'; };
+/* ✅ Smart Back Button (works like device back) */
+document.getElementById('btnBack').onclick=()=>{
+  const lastId=localStorage.getItem("lastId");
+  const lastType=localStorage.getItem("lastType");
+  const f=(FROM||"").toLowerCase();
+  if(history.length>1){history.back();return;}
+  if(f==="movie")location.href="movie.html";
+  else if(f==="series")location.href="series.html";
+  else if(f==="index")location.href="index.html";
+  else if(f==="details"&&lastId&&lastType)location.href=`details.html?type=${lastType}&id=${lastId}`;
+  else location.href="index.html";
+};
+
+/* Brightness */
+let activeDrag=null,startY=0,startVal=0;
+function dragStart(kind,clientY,val){activeDrag=kind;startY=clientY;startVal=val;}
+function dragMove(y){if(!activeDrag)return;const dy=y-startY;const pct=dy/window.innerHeight;if(activeDrag==='brightness'){let b=Math.min(1,Math.max(0,startVal-pct*1.5));const min=0.15;const adj=Math.max(min,b);brightnessEl.style.background=`rgba(0,0,0,${1-adj})`;showOverlay('Brightness: '+Math.round(adj*100)+'%');brightnessEl._val=adj;}}
+function dragEnd(){activeDrag=null;}
+function showOverlay(t){ovLabel.textContent=t;ovLabel.classList.add('show');clearTimeout(ovLabel.hideTimer);ovLabel.hideTimer=setTimeout(()=>ovLabel.classList.remove('show'),800);}
+document.getElementById('leftZone').addEventListener('touchstart',e=>{dragStart('brightness',e.touches[0].clientY,brightnessEl._val||1)});
+document.getElementById('leftZone').addEventListener('touchmove',e=>{e.preventDefault();dragMove(e.touches[0].clientY)},{passive:false});
+document.getElementById('leftZone').addEventListener('touchend',dragEnd);
 </script>
 </body>
 </html>
