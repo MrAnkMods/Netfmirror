@@ -4,6 +4,10 @@
 <meta charset="utf-8" />
 <title>NMix — Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<!-- Firebase (Web) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+
 <style>
 :root{--brand:#e50914;--stroke:#2f2f2f;--ui-scale:1.1;}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -53,6 +57,35 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 .overlayLabel.show{display:block}
 .zone{position:absolute;top:0;bottom:0;width:34%;z-index:6;}
 .zone.left{left:0}.zone.right{right:0}
+
+/* Next Episode overlay */
+.nextOverlay{
+  position:fixed;
+  right:18px;
+  bottom:120px;
+  background:rgba(0,0,0,.6);
+  padding:12px 14px;
+  border-radius:12px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  z-index:60;
+  max-width:320px;
+  color:#fff;
+  box-shadow:0 8px 30px rgba(0,0,0,.6);
+  display:none;
+}
+.nextOverlay.show{display:flex;}
+.nextThumb{width:96px;height:56px;background:#222;border-radius:6px;flex-shrink:0;background-size:cover;background-position:center}
+.nextInfo{flex:1;display:flex;flex-direction:column;gap:6px}
+.nextTitle{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nextSub{font-size:12px;opacity:.86}
+.nextActions{display:flex;gap:8px;align-items:center}
+.nextBtn{background:var(--brand);border:none;padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer;font-weight:700}
+.cancelBtn{background:transparent;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:8px;color:#fff;cursor:pointer}
+
+/* countdown circle */
+.countdown{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.12);display:grid;place-items:center;font-weight:700}
 </style>
 </head>
 <body>
@@ -87,13 +120,58 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 
   <button class="unlockBtn" id="unlockBtn"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
   <div class="overlayLabel" id="ovLabel">50%</div>
+
+  <!-- Next Episode overlay -->
+  <div class="nextOverlay" id="nextOverlay">
+    <div class="nextThumb" id="nextThumb"></div>
+    <div class="nextInfo">
+      <div class="nextTitle" id="nextTitle">Next Episode</div>
+      <div class="nextSub" id="nextSub">S1 • Ep 2</div>
+      <div class="nextActions">
+        <div class="countdown" id="countdown">5</div>
+        <div style="flex:1"></div>
+        <button class="nextBtn" id="nextBtn">Next Episode ▶</button>
+        <button class="cancelBtn" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
+/* =========================
+   CONFIG - Replace below
+   ========================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com", // your RTDB URL
+  projectId: "YOUR_PROJECT_ID",
+  // ...other keys
+};
+/* ========================= */
+
+importFirebaseAndInit();
+
+function importFirebaseAndInit(){
+  try{
+    // initialize firebase app & db
+    const app = firebase.initializeApp(firebaseConfig);
+    window.db = firebase.database(app);
+  }catch(e){
+    console.warn("Firebase init failed:", e);
+  }
+}
+
+/* Query params */
 const qs=new URLSearchParams(location.search);
 const SRC=qs.get('src')||"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4";
 const TITLE=qs.get('title')||"Untitled";
 const FROM=qs.get('from')||localStorage.getItem("lastPage")||"details";
+const TYPE=(qs.get('type')||'movie').toLowerCase(); // 'series' or 'movie'
+const SERIES_ID = qs.get('seriesId') || qs.get('series') || null; // e.g. 'StrangerThings' or series key
+const EP_ID = qs.get('ep') || qs.get('episodeId') || qs.get('id') || null; // current episode key if provided
+
 localStorage.setItem("lastPage",FROM);
 
 const vid=document.getElementById('vid'),loader=document.getElementById('loader');
@@ -103,12 +181,42 @@ const speedBtn=document.getElementById('speedBtn'),speedLabel=document.getElemen
 const zoomBtn=document.getElementById('zoomBtn'),fsBtn=document.getElementById('fsBtn');
 const back10=document.getElementById('back10'),fwd10=document.getElementById('fwd10');
 const brightnessEl=document.getElementById('brightness'),ovLabel=document.getElementById('ovLabel');
-document.getElementById('titleTop').textContent=TITLE;vid.src=SRC;
+
+const nextOverlay=document.getElementById('nextOverlay');
+const nextThumb=document.getElementById('nextThumb');
+const nextTitle=document.getElementById('nextTitle');
+const nextSub=document.getElementById('nextSub');
+const nextBtn=document.getElementById('nextBtn');
+const cancelBtn=document.getElementById('cancelBtn');
+const countdownEl=document.getElementById('countdown');
+
+document.getElementById('titleTop').textContent=TITLE;
+vid.src=SRC;
 
 /* Loader */
-vid.addEventListener("canplay",()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});enterFullscreen();});
+vid.addEventListener("canplay",()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});enterLandscape();});
 vid.addEventListener("waiting",()=>loader.style.display='flex');
 vid.addEventListener("playing",()=>loader.style.display='none');
+
+/* Auto Landscape Fullscreen + Fit */
+async function enterLandscape(){
+ try{
+   if(!document.fullscreenElement){
+     await document.getElementById('wrap').requestFullscreen();
+   }
+   await screen.orientation.lock("landscape").catch(()=>{});
+   vid.style.objectFit="contain";
+   vid.style.width="100vw";
+   vid.style.height="100vh";
+ }catch(e){}
+}
+
+/* Orientation change listener */
+window.addEventListener("orientationchange",()=>{
+  vid.style.objectFit="contain";
+  vid.style.width="100vw";
+  vid.style.height="100vh";
+});
 
 /* Play/Pause */
 function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
@@ -133,16 +241,16 @@ unlockBtn.onclick=()=>{locked=false;document.getElementById('wrap').classList.re
 /* Zoom */
 let fit=true;zoomBtn.onclick=()=>{fit=!fit;vid.style.objectFit=fit?'contain':'cover';showUI();};
 
-/* Fullscreen */
-function enterFullscreen(){if(!document.fullscreenElement){document.getElementById('wrap').requestFullscreen().catch(()=>{});screen.orientation?.lock('landscape').catch(()=>{});}}
-fsBtn.onclick=()=>{if(!document.fullscreenElement)enterFullscreen();else document.exitFullscreen?.();showUI();};
+/* Fullscreen toggle */
+fsBtn.onclick=()=>{if(!document.fullscreenElement)enterLandscape();else document.exitFullscreen?.();showUI();};
 
 /* Auto-hide */
 let timer;function showUI(){if(locked)return;document.getElementById('wrap').classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>document.getElementById('wrap').classList.add('hide'),3000);}['mousemove','click','touchstart'].forEach(e=>document.getElementById('wrap').addEventListener(e,showUI));
 showUI();
 
-
+/* Back button */
 document.getElementById('btnBack').onclick=()=>{
+  exitPortrait();
   const lastId=localStorage.getItem("lastId");
   const lastType=localStorage.getItem("lastType");
   const f=(FROM||"").toLowerCase();
@@ -163,6 +271,225 @@ function showOverlay(t){ovLabel.textContent=t;ovLabel.classList.add('show');clea
 document.getElementById('leftZone').addEventListener('touchstart',e=>{dragStart('brightness',e.touches[0].clientY,brightnessEl._val||1)});
 document.getElementById('leftZone').addEventListener('touchmove',e=>{e.preventDefault();dragMove(e.touches[0].clientY)},{passive:false});
 document.getElementById('leftZone').addEventListener('touchend',dragEnd);
+
+/* -------------------------
+   Next Episode logic (Firebase)
+   ------------------------- */
+
+let episodesList = []; // array of {key, title, src, poster, season, number}
+let currentIndex = -1;
+let autoCountdownTimer = null;
+let countdownValue = 5; // seconds
+
+async function fetchEpisodesForSeries(seriesId){
+  if(!seriesId || !window.db) return [];
+  try{
+    const dbRef = firebase.database().ref(`series/${seriesId}/episodes`);
+    const snap = await dbRef.get();
+    if(!snap.exists()) return [];
+    const data = snap.val();
+    // Convert to array preserving numeric/creation order.
+    // We try numeric key sort, fallback to createdAt.
+    const arr = Object.keys(data).map(k=>{
+      const it = data[k] || {};
+      return {
+        key: k,
+        title: it.title || it.name || `Episode ${k}`,
+        src: it.src || it.url || it.video || "",
+        poster: it.poster || it.thumbnail || it.image || (it.banner||""),
+        season: it.season || it.seasonNum || null,
+        number: it.number || (isFinite(k)?Number(k):null),
+        createdAt: it.createdAt || it.createdAtMillis || 0
+      };
+    });
+
+    // sort: prefer numeric 'number' then createdAt then key
+    arr.sort((a,b)=>{
+      if(a.number!=null && b.number!=null) return a.number - b.number;
+      if(a.createdAt && b.createdAt) return a.createdAt - b.createdAt;
+      return (''+a.key).localeCompare(''+b.key, undefined, {numeric:true});
+    });
+
+    return arr;
+  }catch(e){
+    console.warn("fetchEpisodesForSeries err",e);
+    return [];
+  }
+}
+
+function setNextOverlay(episode){
+  if(!episode) return;
+  nextThumb.style.backgroundImage = episode.poster?`url('${episode.poster}')`:'';
+  nextTitle.textContent = episode.title || "Next Episode";
+  nextSub.textContent = (episode.season?("S"+episode.season+" • "):"") + (episode.number?("Ep "+episode.number):episode.key);
+}
+
+/* show overlay and start countdown */
+function showNextOverlayAndStart(nextEp){
+  if(!nextEp) return;
+  setNextOverlay(nextEp);
+  countdownValue = 5;
+  countdownEl.textContent = countdownValue;
+  nextOverlay.classList.add('show');
+
+  // clear old timer
+  if(autoCountdownTimer) clearInterval(autoCountdownTimer);
+  autoCountdownTimer = setInterval(()=>{
+    countdownValue--;
+    if(countdownValue<=0){
+      clearInterval(autoCountdownTimer);
+      playEpisode(nextEp);
+      hideNextOverlay();
+      return;
+    }
+    countdownEl.textContent = countdownValue;
+  },1000);
+}
+
+/* hide overlay */
+function hideNextOverlay(){
+  nextOverlay.classList.remove('show');
+  countdownEl.textContent = '—';
+  if(autoCountdownTimer) { clearInterval(autoCountdownTimer); autoCountdownTimer=null; }
+}
+
+/* cancel */
+cancelBtn.onclick = ()=>{
+  hideNextOverlay();
+};
+
+/* next button click */
+nextBtn.onclick = ()=>{
+  if(currentIndex>=0 && episodesList[currentIndex+1]) {
+    const nextEp = episodesList[currentIndex+1];
+    hideNextOverlay();
+    playEpisode(nextEp);
+  } else {
+    hideNextOverlay();
+    exitPortrait();
+    history.back();
+  }
+};
+
+/* play an episode object */
+function playEpisode(ep){
+  if(!ep || !ep.src) { console.warn("No ep src"); return; }
+  // update URL params for share / back behavior
+  const u = new URL(location);
+  u.searchParams.set('type','series');
+  if(SERIES_ID) u.searchParams.set('seriesId', SERIES_ID);
+  if(ep.key) u.searchParams.set('ep', ep.key);
+  if(ep.title) u.searchParams.set('title', ep.title);
+  u.searchParams.set('src', ep.src);
+  history.replaceState({}, '', u);
+
+  // set player
+  document.getElementById('titleTop').textContent = ep.title || TITLE;
+  vid.src = ep.src;
+  vid.play().catch(()=>{});
+  // re-enter landscape
+  enterLandscape();
+  // recompute episodesList index
+  const idx = episodesList.findIndex(x=>String(x.key)===String(ep.key));
+  currentIndex = idx;
+}
+
+/* On video ended: if series -> show next overlay; else -> exit */
+vid.addEventListener('ended', async ()=>{
+  // if series: fetch list (if not fetched)
+  if(TYPE === 'series' && SERIES_ID){
+    if(episodesList.length === 0){
+      episodesList = await fetchEpisodesForSeries(SERIES_ID);
+    }
+    // determine current index either via EP_ID param or matching src
+    if(currentIndex < 0){
+      // try match by ep key, else by src, else by title
+      if(EP_ID){
+        currentIndex = episodesList.findIndex(x=>String(x.key)===String(EP_ID));
+      }
+      if(currentIndex < 0){
+        currentIndex = episodesList.findIndex(x=>x.src && x.src===vid.src);
+      }
+      if(currentIndex < 0 && document.getElementById('titleTop').textContent){
+        currentIndex = episodesList.findIndex(x=>x.title && x.title === document.getElementById('titleTop').textContent);
+      }
+    }
+    const nextEp = episodesList[currentIndex+1];
+    if(nextEp){
+      // show overlay with countdown + next
+      showNextOverlayAndStart(nextEp);
+      return;
+    } else {
+      // no next -> behave like movie
+      exitPortrait();
+      history.back();
+      return;
+    }
+  } else {
+    // movie behavior
+    exitPortrait();
+    history.back();
+  }
+});
+
+/* On load, if type=series, prefetch episodes and set currentIndex */
+(async function initSeries(){
+  if(TYPE === 'series' && SERIES_ID && window.db){
+    episodesList = await fetchEpisodesForSeries(SERIES_ID);
+    // If EP_ID present, find it; else try to find by src
+    let idx = -1;
+    if(EP_ID){
+      idx = episodesList.findIndex(x=>String(x.key)===String(EP_ID));
+    }
+    if(idx < 0){
+      idx = episodesList.findIndex(x=>x.src && x.src === SRC);
+    }
+    if(idx < 0 && episodesList.length>0){
+      // fallback to first
+      idx = 0;
+      // if our current src is placeholder, replace with first ep
+      if(!SRC || SRC.includes('Sintel.mp4')) {
+        const first = episodesList[0];
+        if(first && first.src){
+          playEpisode(first);
+          return;
+        }
+      }
+    }
+    currentIndex = idx;
+    // If episode found, make sure title/top reflect it
+    if(currentIndex >=0){
+      const cur = episodesList[currentIndex];
+      if(cur && cur.title) document.getElementById('titleTop').textContent = cur.title;
+      // set EP_ID to current key if missing
+      if(!EP_ID && cur && cur.key) {
+        const u = new URL(location);
+        u.searchParams.set('ep', cur.key);
+        history.replaceState({}, '', u);
+      }
+    }
+  }
+})();
+
+/* Exit portrait/cleanup */
+async function exitPortrait(){
+  try{
+    if(document.fullscreenElement){
+      await document.exitFullscreen();
+    }
+    await screen.orientation.unlock().catch(()=>{});
+  }catch(e){}
+}
+
+/* When the user presses back while overlay showing -> cancel overlay first */
+window.addEventListener('popstate', ()=>{
+  if(nextOverlay.classList.contains('show')){
+    hideNextOverlay();
+    // stop navigation
+    history.pushState({},'');
+  }
+});
+
 </script>
 </body>
 </html>
