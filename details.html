@@ -25,7 +25,43 @@ body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
 .desc{color:#bbb;font-size:15px;padding:12px 14px;text-align:left;}
 .episodes{padding:0;margin-top:10px;}
 .episodes h3{font-size:18px;padding:10px 14px;margin:0;display:flex;align-items:center;justify-content:space-between;}
-.episodes select{background:#111;color:#fff;border:1px solid #333;border-radius:4px;padding:5px 10px;font-size:14px;}
+
+/* ✨ Stylish Season Selector */
+.episodes select{
+  background:rgba(20,20,20,0.85);
+  color:#fff;
+  border:1px solid #333;
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:15px;
+  font-weight:bold;
+  text-align:center;
+  backdrop-filter:blur(8px);
+  box-shadow:0 0 8px rgba(255,255,255,0.1);
+  appearance:none;
+  cursor:pointer;
+}
+.episodes select:focus{
+  outline:none;
+  border-color:#e50914;
+  box-shadow:0 0 10px rgba(229,9,20,0.3);
+}
+
+/* ▼ Custom dropdown arrow */
+.episodes select::-ms-expand{display:none;}
+.episodes h3{position:relative;}
+.episodes h3::after{
+  content:"▼";
+  color:#aaa;
+  font-size:12px;
+  position:absolute;
+  right:26px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+}
+
+/* Episode cards */
 .ep{display:flex;align-items:center;justify-content:space-between;width:90%;margin:8px auto;background:#111;border-radius:8px;padding:10px 12px;border-bottom:0.4px solid rgba(255,255,255,0.07);transition:transform 0.25s ease,background 0.25s ease;}
 .ep:hover{background:#181818;transform:scale(1.02);}
 .ep .left{display:flex;align-items:center;gap:10px;flex:1;}
@@ -34,6 +70,8 @@ body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
 .ep .info b{color:#fff;}
 .ep button{border:none;background:#222;color:#fff;font-size:18px;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .ep button:hover{background:#e50914;}
+
+/* Suggested section */
 .suggested{margin-top:15px;padding:0;}
 .suggested h3{font-size:18px;margin:10px 14px;}
 .suggestRow{display:flex;overflow-x:auto;gap:10px;padding:10px 14px 20px 14px;scroll-snap-type:x mandatory;}
@@ -41,6 +79,8 @@ body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
 .sCard{flex:0 0 auto;width:130px;border-radius:10px;overflow:hidden;scroll-snap-align:start;transition:transform 0.3s ease,filter 0.3s ease;cursor:pointer;}
 .sCard img{width:100%;height:190px;object-fit:cover;border-radius:10px;}
 .sCard:hover{transform:scale(1.05);filter:brightness(1.1);}
+
+/* Toast */
 #toast{visibility:hidden;min-width:220px;background-color:#e50914;color:#fff;text-align:center;border-radius:6px;padding:10px;position:fixed;z-index:1000;left:50%;bottom:30px;transform:translateX(-50%);font-weight:bold;}
 #toast.show{visibility:visible;animation:fadein 0.4s,fadeout 0.4s 2.5s;}
 @keyframes fadein{from{bottom:0;opacity:0;}to{bottom:30px;opacity:1;}}
@@ -125,10 +165,14 @@ else {
     if(type==="series" && d.seasons?.length){
       const sel = document.getElementById("seasonSelect");
       d.seasons.forEach((s,i)=>{
+        const epCount = s.episodes?.length || 0;
         const opt=document.createElement("option");
-        opt.value=i; opt.textContent=s.name||`Season ${i+1}`;
+        opt.value=i;
+        opt.textContent=`${s.name||`Season ${i+1}`} (${epCount} Episodes)`;
         sel.appendChild(opt);
       });
+      if(d.seasons.length===1) sel.style.display='none'; // hide if only one season
+
       const epList=document.getElementById("epList");
       function renderEpisodes(si){
         epList.innerHTML="";
