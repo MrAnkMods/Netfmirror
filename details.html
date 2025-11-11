@@ -5,6 +5,7 @@
 <title>NMix — Details</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <style>
+/* ---------- Base ---------- */
 body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.4;}
 .wrap{padding-bottom:60px;}
 .topbar{display:flex;align-items:center;background:#000;border-bottom:1px solid #111;padding:10px 12px;position:sticky;top:0;z-index:100;}
@@ -23,47 +24,47 @@ body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
 .btn.play:hover{background:#e5e5e5;}
 .btn.download:hover{background:#444;}
 .desc{color:#bbb;font-size:15px;padding:12px 14px;text-align:left;}
+
+/* ---------- Episodes & Season selector ---------- */
 .episodes{padding:0;margin-top:10px;}
 .episodes h3{font-size:18px;padding:10px 14px;margin:0;display:flex;align-items:center;justify-content:space-between;}
-
-/* ✨ Stylish Season Selector */
-.episodes select{
+.seasonBtn{
   background:rgba(20,20,20,0.85);
   color:#fff;
   border:1px solid #333;
   border-radius:8px;
-  padding:8px 12px;
-  font-size:15px;
+  padding:6px 12px;
+  font-size:14px;
+  cursor:pointer;
   font-weight:bold;
-  text-align:center;
   backdrop-filter:blur(8px);
   box-shadow:0 0 8px rgba(255,255,255,0.1);
-  appearance:none;
-  cursor:pointer;
 }
-.episodes select:focus{
-  outline:none;
-  border-color:#e50914;
-  box-shadow:0 0 10px rgba(229,9,20,0.3);
-}
+.seasonBtn:hover{border-color:#e50914;color:#e50914;}
 
-/* ▼ Custom dropdown arrow */
-.episodes select::-ms-expand{display:none;}
-.episodes h3{position:relative;}
-.episodes h3::after{
-  content:"▼";
-  color:#aaa;
-  font-size:12px;
-  position:absolute;
-  right:26px;
-  top:50%;
-  transform:translateY(-50%);
-  pointer-events:none;
+/* ---------- Custom Season Popup ---------- */
+#seasonPopup{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:999;
+  backdrop-filter:blur(6px);
+  animation:fadeIn 0.28s ease;
 }
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.popupBox{
+  background:rgba(30,30,30,0.95);
+  border-radius:12px;width:85%;max-width:340px;padding:14px;
+  box-shadow:0 0 15px rgba(229,9,20,0.18);
+}
+.popupBox h4{ text-align:center;margin-bottom:10px;font-size:17px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:6px; }
+.seasonItem{ padding:10px 12px;border-radius:8px;margin:6px 0;background:#111;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .18s, border .18s; }
+.seasonItem:hover{background:#181818;}
+.seasonItem.active{ border:1px solid #e50914;background:#1a1a1a; }
+.seasonItem small{ color:#aaa; font-size:12px; margin-left:8px; }
+.closePopup{ display:block;width:100%;background:#e50914;color:#fff;border:none;border-radius:6px;padding:10px 0;font-weight:bold;margin-top:10px;cursor:pointer; }
 
-/* Episode cards */
-.ep{display:flex;align-items:center;justify-content:space-between;width:90%;margin:8px auto;background:#111;border-radius:8px;padding:10px 12px;border-bottom:0.4px solid rgba(255,255,255,0.07);transition:transform 0.25s ease,background 0.25s ease;}
-.ep:hover{background:#181818;transform:scale(1.02);}
+/* ---------- Episode Cards (animated) ---------- */
+.ep{display:flex;align-items:center;justify-content:space-between;width:90%;margin:8px auto;background:#111;border-radius:8px;padding:10px 12px;border-bottom:0.4px solid rgba(255,255,255,0.07);transition:background .25s;}
+.ep:hover{background:#181818;}
 .ep .left{display:flex;align-items:center;gap:10px;flex:1;}
 .ep img{width:100px;height:60px;object-fit:cover;border-radius:6px;}
 .ep .info{font-size:14px;color:#ddd;flex:1;}
@@ -71,18 +72,29 @@ body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
 .ep button{border:none;background:#222;color:#fff;font-size:18px;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .ep button:hover{background:#e50914;}
 
-/* Suggested section */
+/* Animation: enter (fade + slide up) */
+.ep.enter{
+  opacity:0;
+  transform:translateY(12px);
+}
+.ep.enter.show{
+  opacity:1;
+  transform:translateY(0);
+  transition:opacity .36s cubic-bezier(.2,.9,.2,1), transform .36s cubic-bezier(.2,.9,.2,1);
+}
+
+/* ---------- Suggestions ---------- */
 .suggested{margin-top:15px;padding:0;}
 .suggested h3{font-size:18px;margin:10px 14px;}
 .suggestRow{display:flex;overflow-x:auto;gap:10px;padding:10px 14px 20px 14px;scroll-snap-type:x mandatory;}
 .suggestRow::-webkit-scrollbar{display:none;}
-.sCard{flex:0 0 auto;width:130px;border-radius:10px;overflow:hidden;scroll-snap-align:start;transition:transform 0.3s ease,filter 0.3s ease;cursor:pointer;}
+.sCard{flex:0 0 auto;width:130px;border-radius:10px;overflow:hidden;scroll-snap-align:start;transition:transform .3s ease,filter .3s ease;cursor:pointer;}
 .sCard img{width:100%;height:190px;object-fit:cover;border-radius:10px;}
 .sCard:hover{transform:scale(1.05);filter:brightness(1.1);}
 
-/* Toast */
+/* ---------- Toast ---------- */
 #toast{visibility:hidden;min-width:220px;background-color:#e50914;color:#fff;text-align:center;border-radius:6px;padding:10px;position:fixed;z-index:1000;left:50%;bottom:30px;transform:translateX(-50%);font-weight:bold;}
-#toast.show{visibility:visible;animation:fadein 0.4s,fadeout 0.4s 2.5s;}
+#toast.show{visibility:visible;animation:fadein .4s,fadeout .4s 2.5s;}
 @keyframes fadein{from{bottom:0;opacity:0;}to{bottom:30px;opacity:1;}}
 @keyframes fadeout{from{bottom:30px;opacity:1;}to{bottom:0;opacity:0;}}
 </style>
@@ -94,6 +106,16 @@ body{margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif;
 </div>
 
 <div class="wrap" id="mainArea"></div>
+
+<!-- Custom Season Popup -->
+<div id="seasonPopup">
+  <div class="popupBox">
+    <h4>Select Season</h4>
+    <div id="seasonList"></div>
+    <button class="closePopup" id="closePopup">Close</button>
+  </div>
+</div>
+
 <div id="toast">Not available right now</div>
 
 <script type="module">
@@ -115,18 +137,34 @@ const params = new URLSearchParams(location.search);
 const type = params.get("type") || "movie";
 const id = params.get("id");
 const main = document.getElementById("mainArea");
+const popup = document.getElementById("seasonPopup");
+const popupList = document.getElementById("seasonList");
+const closePopup = document.getElementById("closePopup");
 document.getElementById("backBtn").onclick = ()=>history.back();
 
 function showToast(msg){
-  const toast = document.getElementById("toast");
-  toast.textContent = msg;
+  const toast=document.getElementById("toast");
+  toast.textContent=msg;
   toast.classList.add("show");
   setTimeout(()=>toast.classList.remove("show"),3000);
 }
 
-if(!id){ main.innerHTML = "<p style='padding:20px'>No item specified.</p>"; }
+/* ---------- Helper: animate entries with stagger ---------- */
+function animateEntries(containerSelector, delay=60){
+  const nodes = Array.from(document.querySelectorAll(containerSelector));
+  nodes.forEach((n,i)=>{
+    n.classList.add('enter');
+    // stagger removal so CSS transition plays
+    setTimeout(()=> n.classList.add('show'), 40 + i*delay);
+    // cleanup classes after animation completes
+    setTimeout(()=> n.classList.remove('enter','show'), 40 + i*delay + 420);
+  });
+}
+
+/* ---------- Load item ---------- */
+if(!id){main.innerHTML="<p style='padding:20px'>No item specified.</p>";}
 else {
-  const node = type === "series" ? "series" : "movies";
+  const node = type==="series" ? "series" : "movies";
   onValue(ref(db, node + "/" + id), snap=>{
     const d = snap.val();
     if(!d){ main.innerHTML = "<p style='padding:20px'>Item not found.</p>"; return; }
@@ -145,15 +183,16 @@ else {
     `;
 
     if(type === "series" && d.seasons?.length){
-      html += `<div class="episodes"><h3>Episodes <select id="seasonSelect"></select></h3><div id="epList"></div></div>`;
+      html += `<div class="episodes"><h3>Episodes <button class="seasonBtn" id="openSeason">Season 1</button></h3><div id="epList"></div></div>`;
     }
 
     html += `<div class="suggested"><h3>${type==='series'?'Similar Series':'More Like This'}</h3><div class="suggestRow" id="suggestRow"></div></div>`;
     main.innerHTML = html;
 
+    /* Play / Download behavior */
     document.getElementById("playBtn").onclick = ()=>{
       let videoUrl = d.video || d.videourl || d.link || "";
-      if(type==="series" && !videoUrl && d.seasons?.length){
+      if(type === "series" && !videoUrl && d.seasons?.length){
         const firstEp = d.seasons[0].episodes?.[0];
         if(firstEp?.video) videoUrl = firstEp.video;
       }
@@ -162,70 +201,92 @@ else {
     };
     document.getElementById("downloadBtn").onclick = ()=>showToast("Download Not Available");
 
-    if(type==="series" && d.seasons?.length){
-      const sel = document.getElementById("seasonSelect");
-      d.seasons.forEach((s,i)=>{
-        const epCount = s.episodes?.length || 0;
-        const opt=document.createElement("option");
-        opt.value=i;
-        opt.textContent=`${s.name||`Season ${i+1}`} (${epCount} Episodes)`;
-        sel.appendChild(opt);
-      });
-      if(d.seasons.length===1) sel.style.display='none'; // hide if only one season
+    /* Series season + episodes */
+    if(type === "series" && d.seasons?.length){
+      const epList = document.getElementById("epList");
+      const openBtn = document.getElementById("openSeason");
+      let currentSeason = 0;
 
-      const epList=document.getElementById("epList");
       function renderEpisodes(si){
-        epList.innerHTML="";
-        const s=d.seasons[si];
-        s.episodes?.forEach((ep,ei)=>{
-          const epTitle=ep.epTitle||`Episode ${ei+1}`;
-          const item=document.createElement("div");
-          item.className="ep";
-          item.innerHTML=`
+        epList.innerHTML = "";
+        const s = d.seasons[si];
+        openBtn.textContent = s.name || `Season ${si+1}`;
+        (s.episodes || []).forEach((ep, ei)=>{
+          const epTitle = ep.epTitle || `Episode ${ei+1}`;
+          const item = document.createElement("div");
+          item.className = "ep";
+          item.innerHTML = `
             <div class="left">
-              <img src="${ep.thumb||d.poster||'assets/banner1.jpg'}">
-              <div class="info"><b>${epTitle}</b><br>${ep.duration||''}</div>
+              <img src="${ep.thumb || d.poster || 'assets/banner1.jpg'}">
+              <div class="info"><b>${epTitle}</b><br>${ep.duration || ''}</div>
             </div>
             <button class="epPlay" data-video="${encodeURIComponent(ep.video||'')}" data-eptitle="${epTitle}">▶</button>
           `;
           epList.appendChild(item);
         });
+
+        // run animation on appended episode cards (staggered fade+slide)
+        // using selector after DOM append
+        animateEntries('#epList .ep', 80);
         attachEpEvents();
       }
+
       function attachEpEvents(){
         document.querySelectorAll(".epPlay").forEach(b=>{
-          b.onclick=(ev)=>{
-            let v=decodeURIComponent(ev.currentTarget.dataset.video||'');
-            if(!v){showToast("No video found");return;}
-            const epTitle=ev.currentTarget.dataset.eptitle||"Episode";
-            const fullTitle=`${d.title||'Series'} — ${epTitle}`;
-            window.location=`player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(fullTitle)}&from=details`;
+          b.onclick = (ev)=>{
+            let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
+            if(!v){ showToast("No video found"); return; }
+            const epTitle = ev.currentTarget.dataset.eptitle || "Episode";
+            const fullTitle = `${d.title || 'Series'} — ${epTitle}`;
+            window.location = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(fullTitle)}&from=details`;
           };
         });
       }
-      sel.onchange=()=>renderEpisodes(sel.value);
+
+      /* Open popup & build dynamic season list */
+      openBtn.onclick = ()=>{
+        popup.style.display = "flex";
+        popupList.innerHTML = "";
+        d.seasons.forEach((s, i)=>{
+          const epCount = (s.episodes || []).length || 0;
+          const div = document.createElement("div");
+          div.className = "seasonItem" + (i===currentSeason ? " active" : "");
+          // include small episode count to the right
+          div.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><span>${s.name || `Season ${i+1}`}</span><small style="color:#aaa">${epCount} Episodes</small></div>`;
+          div.onclick = ()=>{
+            currentSeason = i;
+            renderEpisodes(i);
+            popup.style.display = "none";
+          };
+          popupList.appendChild(div);
+        });
+      };
+
+      closePopup.onclick = ()=> popup.style.display = "none";
       renderEpisodes(0);
     }
 
-    loadSuggestions(node,d.category||d.section||'',id);
+    /* Suggestions loader */
+    loadSuggestions(node, d.category || d.section || '', id);
   });
 }
 
-function loadSuggestions(node,category,currentId){
-  const suggestRow=document.getElementById("suggestRow");
+/* Suggestions function */
+function loadSuggestions(node, category, currentId){
+  const suggestRow = document.getElementById("suggestRow");
   if(!suggestRow) return;
-  onValue(ref(db,node),snap=>{
-    suggestRow.innerHTML="";
+  onValue(ref(db, node), snap=>{
+    suggestRow.innerHTML = "";
     snap.forEach(s=>{
-      const sid=s.key;const d=s.val();
-      if(sid===currentId) return;
-      const cat=(d.category||d.section||"").toLowerCase();
+      const sid = s.key; const d = s.val();
+      if(sid === currentId) return;
+      const cat = (d.category || d.section || "").toLowerCase();
       if(cat.includes(category.toLowerCase())){
-        const card=document.createElement("div");
-        card.className="sCard";
-        const img=document.createElement("img");
-        img.src=d.poster||"";
-        img.onclick=()=>window.location=`details.html?type=${node}&id=${sid}`;
+        const card = document.createElement("div");
+        card.className = "sCard";
+        const img = document.createElement("img");
+        img.src = d.poster || "";
+        img.onclick = ()=> window.location = `details.html?type=${node}&id=${sid}`;
         card.appendChild(img);
         suggestRow.appendChild(card);
       }
