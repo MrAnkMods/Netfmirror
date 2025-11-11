@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <title>NMix — Details</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <style>
   body {
     margin:0;
@@ -17,10 +17,9 @@
   .topbar{
     display:flex;
     align-items:center;
-    justify-content:flex-start;
     background:#000;
     border-bottom:1px solid #111;
-    padding:10px 16px;
+    padding:10px 12px;
     position:sticky;
     top:0;
     z-index:100;
@@ -36,41 +35,38 @@
     align-items:center;
     gap:6px;
   }
-  .backBtn:hover{opacity:0.7;}
   .backBtn span{font-size:15px;color:#ccc;}
+  .backBtn:hover{opacity:0.7;}
 
-  /* Poster Banner */
+  /* Poster */
   .banner{
-    position:relative;
     width:100%;
-    height:230px;
+    height:250px;
     overflow:hidden;
   }
   .banner img{
     width:100%;
     height:100%;
     object-fit:cover;
-    filter:brightness(0.65);
+    filter:brightness(0.7);
   }
 
-  /* Title + Meta */
+  /* Title & Meta */
   .infoBox{
-    padding:16px 20px;
     text-align:center;
+    padding:12px 10px 0 10px;
   }
-  .title{font-size:24px;font-weight:bold;margin-bottom:4px;}
+  .title{font-size:23px;font-weight:bold;margin-bottom:4px;}
   .meta{font-size:14px;color:#ccc;margin-bottom:14px;}
 
-  /* Netflix-style stacked buttons below poster */
+  /* Buttons */
   .btns{
     display:flex;
     flex-direction:column;
     align-items:center;
     gap:10px;
     width:100%;
-    padding:0 20px;
-    margin-top:-10px;
-    margin-bottom:20px;
+    padding:0 10px;
   }
   .btn{
     border:none;
@@ -79,9 +75,8 @@
     font-size:16px;
     cursor:pointer;
     padding:12px 0;
-    width:100%;
-    max-width:350px;
-    text-align:center;
+    width:90%;
+    max-width:380px;
   }
   .btn.play{
     background:#fff;
@@ -97,36 +92,92 @@
 
   /* Description */
   .desc{
-    padding:10px 20px;
     color:#bbb;
     font-size:15px;
+    padding:12px 14px;
     text-align:left;
   }
 
-  /* Episodes section */
-  .episodes{padding:10px 20px;}
-  .episodes h3{margin:10px 0;font-size:18px;}
+  /* Episodes (Netflix Style) */
+  .episodes{padding:0;margin-top:10px;}
+  .episodes h3{
+    font-size:18px;
+    padding:10px 14px;
+    margin:0;
+  }
   .ep{
     display:flex;
     align-items:center;
     justify-content:space-between;
+    width:100%;
     background:#111;
-    border-radius:8px;
-    padding:10px;
-    margin-bottom:8px;
+    padding:10px 14px;
+    border-bottom:1px solid #222;
   }
-  .ep .left{display:flex;align-items:center;gap:10px;}
-  .ep img{width:100px;height:60px;object-fit:cover;border-radius:6px;}
-  .ep .info{font-size:14px;}
-  .ep button{border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer;}
+  .ep .left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+  }
+  .ep img{
+    width:120px;
+    height:68px;
+    object-fit:cover;
+    border-radius:4px;
+  }
+  .ep .info{
+    font-size:14px;
+    color:#ddd;
+  }
+  .ep .info b{color:#fff;}
+  .ep button{
+    border:none;
+    background:transparent;
+    color:#fff;
+    font-size:22px;
+    cursor:pointer;
+  }
+  .ep button:hover{color:#e50914;}
 
-  /* Suggested section */
-  .suggested{padding:10px 20px;}
-  .suggested h3{font-size:18px;margin:10px 0;}
-  .suggestRow{display:flex;gap:10px;overflow:auto;padding-bottom:10px;}
-  .sCard{min-width:130px;background:#111;border-radius:8px;overflow:hidden;cursor:pointer;}
-  .sCard img{width:130px;height:180px;object-fit:cover;}
+  /* Suggested Section (Netflix Carousel) */
+  .suggested {
+    margin-top:15px;
+    padding:0;
+  }
+  .suggested h3 {
+    font-size:18px;
+    margin:10px 14px;
+  }
+  .suggestRow {
+    display:flex;
+    overflow-x:auto;
+    gap:10px;
+    padding:10px 14px 20px 14px;
+    scroll-snap-type:x mandatory;
+  }
+  .suggestRow::-webkit-scrollbar {display:none;}
+  .sCard {
+    flex:0 0 auto;
+    width:130px;
+    border-radius:10px;
+    overflow:hidden;
+    scroll-snap-align:start;
+    transition:transform 0.3s ease, filter 0.3s ease;
+    cursor:pointer;
+  }
+  .sCard img {
+    width:100%;
+    height:190px;
+    object-fit:cover;
+    border-radius:10px;
+  }
+  .sCard:hover {
+    transform:scale(1.05);
+    filter:brightness(1.1);
+  }
 
+  /* Toast */
   #toast {
     visibility: hidden;
     min-width: 220px;
@@ -200,13 +251,11 @@ if(!id){
       return; 
     }
 
-
     let descText = d.description || d.decreption || d.deception || d.desc || "";
     if(!descText && d.seasons?.length){
       descText = d.seasons[0].description || d.seasons[0].desc || "No description available.";
     }
     if(!descText) descText = "No description available.";
-
 
     let html = `
       <div class="banner">
@@ -226,7 +275,6 @@ if(!id){
       <div class="desc">${descText}</div>
     `;
 
-    
     if(type === "series" && d.seasons?.length){
       html += `<div class="episodes"><h3>Episodes</h3>`;
       d.seasons.forEach((s)=>{
@@ -252,9 +300,8 @@ if(!id){
     `;
     main.innerHTML = html;
 
-    // ▶ Play Button — get correct video
-    const playBtn = document.getElementById("playBtn");
-    playBtn.onclick = ()=>{
+    // ▶ Play Button
+    document.getElementById("playBtn").onclick = ()=>{
       let videoUrl = d.video || d.videourl || d.link || "";
       let titleTxt = d.title || "";
       
@@ -262,41 +309,24 @@ if(!id){
         const firstEp = d.seasons[0].episodes?.[0];
         if(firstEp?.video || firstEp?.link) videoUrl = firstEp.video || firstEp.link;
       }
-
-      if(!videoUrl){
-        showToast("No video available");
-        console.warn("No video URL found for:", id);
-        return;
-      }
-
-      localStorage.setItem("lastId", id);
-      localStorage.setItem("lastType", type);
-      localStorage.setItem("lastPage", "details");
-
-      const url = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&from=details`;
-      window.location = url;
+      if(!videoUrl){ showToast("No video available"); return; }
+      window.location = `player.html?src=${encodeURIComponent(videoUrl)}&title=${encodeURIComponent(titleTxt)}&from=details`;
     };
 
-
-    const downloadBtn = document.getElementById("downloadBtn");
-    downloadBtn.onclick = ()=>{
+    // 🔽 Download Button
+    document.getElementById("downloadBtn").onclick = ()=>{
+      if(type === "movie"){ showToast("Download Not Available"); return; }
       let link = d.video || d.videourl || d.link || "";
       if(!link){ showToast("Download not available"); return; }
       window.open(link, "_blank");
     };
 
-    // ▶ Episode buttons
+    // ▶ Episode Play
     document.querySelectorAll(".epPlay").forEach(b=>{
       b.onclick = (ev)=>{
         let v = decodeURIComponent(ev.currentTarget.dataset.video||'');
         if(!v){ showToast("No video found"); return; }
-
-        localStorage.setItem("lastId", id);
-        localStorage.setItem("lastType", type);
-        localStorage.setItem("lastPage", "details");
-
-        const playerUrl = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&from=details`;
-        window.location = playerUrl;
+        window.location = `player.html?src=${encodeURIComponent(v)}&title=${encodeURIComponent(d.title || '')}&from=details`;
       };
     });
 
@@ -304,7 +334,7 @@ if(!id){
   });
 }
 
-
+// Netflix-style carousel loader
 function loadSuggestions(node, category, currentId){
   const suggestRow = document.getElementById("suggestRow");
   if(!suggestRow) return;
