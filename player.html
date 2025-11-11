@@ -141,7 +141,7 @@ fsBtn.onclick=()=>{if(!document.fullscreenElement)enterFullscreen();else documen
 let timer;function showUI(){if(locked)return;document.getElementById('wrap').classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>document.getElementById('wrap').classList.add('hide'),3000);}['mousemove','click','touchstart'].forEach(e=>document.getElementById('wrap').addEventListener(e,showUI));
 showUI();
 
-/* ✅ Smart Back Button (works like device back) */
+
 document.getElementById('btnBack').onclick=()=>{
   const lastId=localStorage.getItem("lastId");
   const lastType=localStorage.getItem("lastType");
