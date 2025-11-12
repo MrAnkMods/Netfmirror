@@ -15,47 +15,46 @@ video.show{opacity:1}
 
 /* Loader */
 .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;background:#000}
-.spinner{width:70px;height:70px;border-radius:50%;border:6px solid rgba(255,255,255,.18);border-top-color:#e50914;animation:spin 1s linear infinite}
+.spinner{width:60px;height:60px;border-radius:50%;border:6px solid rgba(255,255,255,.18);border-top-color:#e50914;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loadText{color:#e50914;font-weight:bold}
 
 /* Top bar */
 .topBar{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:5;transition:opacity .3s}
-.btnIcon{width:44px;height:44px;border-radius:12px;background:rgba(20,20,20,.55);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.titleTop{flex:1;text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btnIcon{width:38px;height:38px;border-radius:10px;background:rgba(20,20,20,.55);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.titleTop{flex:1;text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
 
-/* Center controls */
-.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:60px;align-items:center;z-index:5;transition:opacity .3s}
-.round{width:70px;height:70px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer}
-.pp svg{width:54px;height:54px}
+/* Center controls — Netflix size */
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:40px;align-items:center;z-index:5;transition:opacity .3s}
+.round{display:grid;place-items:center;cursor:pointer;border-radius:50%;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.35);}
+#pp.round{width:52px;height:52px;}           
+#back10.round,#fwd10.round{width:44px;height:44px;}
 
 /* Progress bar */
-.progress{position:absolute;left:12px;right:12px;bottom:90px;height:6px;background:#333;border-radius:6px;overflow:hidden;z-index:5}
-.progress>span {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: var(--brand);
-  transition: width 0.15s linear; /* smooth Netflix-like animation */
-}
-/* ✅ Added range input for seek functionality */
-input[type=range]{position:absolute;left:0;right:0;bottom:87px;width:100%;height:20px;z-index:6;appearance:none;background:transparent;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--brand);border:none;}
-input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--brand);border:none;}
+.progress{position:absolute;left:12px;right:12px;bottom:80px;height:5px;background:#333;border-radius:6px;overflow:hidden;z-index:5}
+.progress>span{display:block;height:100%;width:0;background:var(--brand);transition:width 0.05s linear;}
+input[type=range]{position:absolute;left:0;right:0;bottom:77px;width:100%;height:20px;z-index:6;appearance:none;background:transparent;cursor:pointer;border:none;outline:none;}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:0;height:0;}
+input[type=range]::-moz-range-thumb{width:0;height:0;border:none;}
 
 /* Bottom row */
-.bottom{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:22px;z-index:5;transition:opacity .3s}
-.menuBtn{display:flex;align-items:center;gap:6px;font-size:14px;color:#fff;background:transparent;border:none;cursor:pointer}
-.menuBtn svg{width:22px;height:22px;fill:#fff}
+.bottom{position:absolute;bottom:16px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:18px;z-index:5;transition:opacity .3s}
+.menuBtn{display:flex;align-items:center;gap:5px;font-size:12px;color:#fff;background:transparent;border:none;cursor:pointer}
+.menuBtn svg{width:20px;height:20px;fill:#fff}
 
-/* Unlock button */
+/* 🔒 Glowing Netflix Red Lock */
 .unlockBtn{
-  position:absolute;left:50%;bottom:50px;transform:translateX(-50%);
-  background:rgba(20,20,20,.7);border:1px solid #3a3a3a;border-radius:20px;
-  padding:12px 20px;color:#fff;display:none;z-index:10;
-  font-weight:600;cursor:pointer;
-  backdrop-filter:blur(6px);
+  position:absolute;left:50%;bottom:45px;transform:translateX(-50%);
+  background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.22);
+  border-radius:50%;width:52px;height:52px;display:none;
+  align-items:center;justify-content:center;color:#fff;z-index:30;
+  animation:pulse 1.2s ease-in-out infinite alternate;
 }
+@keyframes pulse{
+  from{box-shadow:0 0 8px rgba(229,9,20,0.25);}
+  to{box-shadow:0 0 16px rgba(229,9,20,0.8);}
+}
+.unlockBtn svg{width:22px;height:22px;stroke:#fff;stroke-width:1.8;fill:none;}
 
 /* Hide when inactive */
 .hide .topBar,.hide .center,.hide .progress,.hide .bottom{opacity:0;pointer-events:none}
@@ -82,7 +81,6 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 
   <!-- progress -->
   <div class="progress"><span id="prog"></span></div>
-  <!-- ✅ Added range seek bar -->
   <input type="range" id="seek" min="0" value="0" step="0.1">
 
   <!-- bottom -->
@@ -95,8 +93,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     <button class="menuBtn" id="zoomBtn"><svg viewBox="0 0 24 24"><path d="M15 15h4v4M9 9H5V5M9 15H5v4M15 9h4V5" stroke="#fff" stroke-width="2" fill="none"/></svg>Zoom</button>
   </div>
 
-  <!-- unlock -->
-  <button class="unlockBtn" id="unlockBtn">Unlock</button>
+  <!-- glowing unlock -->
+  <button class="unlockBtn" id="unlockBtn"><svg viewBox="0 0 24 24"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" /></svg></button>
 </div>
 
 <script>
@@ -109,7 +107,7 @@ const wrap=document.getElementById('wrap');
 const vid=document.getElementById('vid');
 const loader=document.getElementById('loader');
 const prog=document.getElementById('prog');
-const seek=document.getElementById('seek'); // ✅ new
+const seek=document.getElementById('seek');
 const pp=document.getElementById('pp');
 const speedBtn=document.getElementById('speedBtn');
 const speedLabel=document.getElementById('speedLabel');
@@ -124,8 +122,24 @@ document.getElementById('titleTop').textContent=TITLE;
 vid.src=SRC;
 if(TYPE==="series"){episodesBtn.style.display="inline-flex";nextBtn.style.display="inline-flex";}
 
-/* Loader hide */
-vid.addEventListener('canplay',()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});});
+/* Loader hide + auto landscape fullscreen */
+vid.addEventListener('canplay',async()=>{
+  loader.style.display='none';
+  vid.classList.add('show');
+  vid.play().catch(()=>{});
+  try{
+    await wrap.requestFullscreen();
+    await screen.orientation.lock("landscape");
+  }catch(e){}
+});
+
+/* Restore portrait on back */
+async function exitFullscreen(){
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+    await screen.orientation.unlock();
+  }catch(e){}
+}
 
 /* Play/Pause */
 function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
@@ -134,125 +148,47 @@ pp.onclick=toggle;vid.onclick=toggle;
 document.getElementById('back10').onclick=()=>{vid.currentTime=Math.max(0,vid.currentTime-10);showUI();}
 document.getElementById('fwd10').onclick=()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);showUI();}
 
-/* ✅ Seekbar logic */
+/* Seek */
+let seeking=false;
 vid.addEventListener('timeupdate',()=>{
-  if(vid.duration){
-    const pct=(vid.currentTime/vid.duration)*100;
-    prog.style.width=pct+'%';
-    seek.max=vid.duration;
-    seek.value=vid.currentTime;
+  if(!seeking && vid.duration){
+    prog.style.width=(vid.currentTime/vid.duration*100)+'%';
+    seek.max=vid.duration; seek.value=vid.currentTime;
   }
 });
-seek.addEventListener('input',()=>{vid.currentTime=seek.value;showUI();});
+seek.addEventListener('input',()=>{seeking=true;prog.style.width=(seek.value/seek.max*100)+'%';});
+seek.addEventListener('change',()=>{vid.currentTime=seek.value;seeking=false;showUI();});
 
 /* Speed */
 let speeds=[0.5,1,1.5,2];let si=1;
 speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();}
 
-/* Lock + Unlock Control */
+/* Lock + Unlock */
 let locked=false;
-lockBtn.onclick=()=>{
-  locked=true;
-  wrap.classList.add('hide');
-  unlockBtn.style.display='block';
-};
-unlockBtn.onclick=()=>{
-  locked=false;
-  wrap.classList.remove('hide');
-  unlockBtn.style.display='none';
-  showUI();
-};
+lockBtn.onclick=()=>{locked=true;wrap.classList.add('hide');unlockBtn.style.display='flex';};
+unlockBtn.onclick=()=>{locked=false;wrap.classList.remove('hide');unlockBtn.style.display='none';showUI();};
 
-/* Zoom (fit ↔ fill) */
+/* Zoom */
 let fitMode=true;
-zoomBtn.onclick=()=>{
-  fitMode=!fitMode;
-  vid.style.objectFit=fitMode?'contain':'cover';
+zoomBtn.onclick=()=>{fitMode=!fitMode;vid.style.objectFit=fitMode?'contain':'cover';showUI();};
+
+/* Fullscreen toggle */
+fsBtn.onclick=async()=>{
+  if(!document.fullscreenElement){await wrap.requestFullscreen();await screen.orientation.lock("landscape");}
+  else{await exitFullscreen();}
   showUI();
 };
 
-/* Fullscreen Toggle */
-fsBtn.onclick=()=>{
-  if(!document.fullscreenElement){wrap.requestFullscreen().catch(()=>{});}
-  else{document.exitFullscreen?.();}
-  showUI();
-};
-
-/* Auto-hide Controls */
-let timer;
-function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
-['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
-showUI();
+/* Auto-hide */
+let timer;function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
+['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));showUI();
 
 /* Episodes / Next */
 episodesBtn.onclick=()=>alert("Episodes list open (to be linked)");
 nextBtn.onclick=()=>alert("Next Episode playing...");
 
 /* Back */
-document.getElementById('btnBack').onclick=()=>history.back();
-</script>
-</body>
-</html>vid.src=SRC;
-if(TYPE==="series"){episodesBtn.style.display="inline-flex";nextBtn.style.display="inline-flex";}
-
-/* Loader hide */
-vid.addEventListener('canplay',()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});});
-
-/* Play/Pause */
-function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
-function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
-pp.onclick=toggle;vid.onclick=toggle;
-document.getElementById('back10').onclick=()=>{vid.currentTime=Math.max(0,vid.currentTime-10);showUI();}
-document.getElementById('fwd10').onclick=()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);showUI();}
-
-/* Progress */
-vid.addEventListener('timeupdate',()=>{const d=vid.duration||0,c=vid.currentTime||0;prog.style.width=`${(c/d)*100}%`;});
-
-/* Speed */
-let speeds=[0.5,1,1.5,2];let si=1;
-speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();}
-
-/* Lock + Unlock Control */
-let locked=false;
-lockBtn.onclick=()=>{
-  locked=true;
-  wrap.classList.add('hide');
-  unlockBtn.style.display='block';
-};
-unlockBtn.onclick=()=>{
-  locked=false;
-  wrap.classList.remove('hide');
-  unlockBtn.style.display='none';
-  showUI();
-};
-
-/* Zoom (fit ↔ fill) */
-let fitMode=true;
-zoomBtn.onclick=()=>{
-  fitMode=!fitMode;
-  vid.style.objectFit=fitMode?'contain':'cover';
-  showUI();
-};
-
-/* Fullscreen Toggle */
-fsBtn.onclick=()=>{
-  if(!document.fullscreenElement){wrap.requestFullscreen().catch(()=>{});}
-  else{document.exitFullscreen?.();}
-  showUI();
-};
-
-/* Auto-hide Controls */
-let timer;
-function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
-['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
-showUI();
-
-/* Episodes / Next */
-episodesBtn.onclick=()=>alert("Episodes list open (to be linked)");
-nextBtn.onclick=()=>alert("Next Episode playing...");
-
-/* Back */
-document.getElementById('btnBack').onclick=()=>history.back();
+document.getElementById('btnBack').onclick=()=>{exitFullscreen();history.back();}
 </script>
 </body>
 </html>
