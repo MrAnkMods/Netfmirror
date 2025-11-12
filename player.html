@@ -31,7 +31,17 @@ video.show{opacity:1}
 
 /* Progress bar */
 .progress{position:absolute;left:12px;right:12px;bottom:90px;height:6px;background:#333;border-radius:6px;overflow:hidden;z-index:5}
-.progress>span{display:block;height:100%;width:0;background:var(--brand)}
+.progress>span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--brand);
+  transition: width 0.15s linear; /* smooth Netflix-like animation */
+}
+/* ✅ Added range input for seek functionality */
+input[type=range]{position:absolute;left:0;right:0;bottom:87px;width:100%;height:20px;z-index:6;appearance:none;background:transparent;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--brand);border:none;}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--brand);border:none;}
 
 /* Bottom row */
 .bottom{position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:22px;z-index:5;transition:opacity .3s}
@@ -72,6 +82,8 @@ video.show{opacity:1}
 
   <!-- progress -->
   <div class="progress"><span id="prog"></span></div>
+  <!-- ✅ Added range seek bar -->
+  <input type="range" id="seek" min="0" value="0" step="0.1">
 
   <!-- bottom -->
   <div class="bottom" id="bottom">
@@ -97,11 +109,11 @@ const wrap=document.getElementById('wrap');
 const vid=document.getElementById('vid');
 const loader=document.getElementById('loader');
 const prog=document.getElementById('prog');
+const seek=document.getElementById('seek'); // ✅ new
 const pp=document.getElementById('pp');
 const speedBtn=document.getElementById('speedBtn');
 const speedLabel=document.getElementById('speedLabel');
 const lockBtn=document.getElementById('lockBtn');
-const lockIcon=document.getElementById('lockIcon');
 const unlockBtn=document.getElementById('unlockBtn');
 const fsBtn=document.getElementById('fsBtn');
 const episodesBtn=document.getElementById('episodesBtn');
@@ -110,6 +122,77 @@ const zoomBtn=document.getElementById('zoomBtn');
 
 document.getElementById('titleTop').textContent=TITLE;
 vid.src=SRC;
+if(TYPE==="series"){episodesBtn.style.display="inline-flex";nextBtn.style.display="inline-flex";}
+
+/* Loader hide */
+vid.addEventListener('canplay',()=>{loader.style.display='none';vid.classList.add('show');vid.play().catch(()=>{});});
+
+/* Play/Pause */
+function setPPIcon(p){pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M8 5l10 7-10 7V5z" fill="#fff"/></svg>':'<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="#fff"/></svg>';}
+function toggle(){if(vid.paused){vid.play();setPPIcon(false);}else{vid.pause();setPPIcon(true);}showUI();}
+pp.onclick=toggle;vid.onclick=toggle;
+document.getElementById('back10').onclick=()=>{vid.currentTime=Math.max(0,vid.currentTime-10);showUI();}
+document.getElementById('fwd10').onclick=()=>{vid.currentTime=Math.min(vid.duration,vid.currentTime+10);showUI();}
+
+/* ✅ Seekbar logic */
+vid.addEventListener('timeupdate',()=>{
+  if(vid.duration){
+    const pct=(vid.currentTime/vid.duration)*100;
+    prog.style.width=pct+'%';
+    seek.max=vid.duration;
+    seek.value=vid.currentTime;
+  }
+});
+seek.addEventListener('input',()=>{vid.currentTime=seek.value;showUI();});
+
+/* Speed */
+let speeds=[0.5,1,1.5,2];let si=1;
+speedBtn.onclick=()=>{si=(si+1)%speeds.length;vid.playbackRate=speeds[si];speedLabel.textContent=speeds[si]+'x';showUI();}
+
+/* Lock + Unlock Control */
+let locked=false;
+lockBtn.onclick=()=>{
+  locked=true;
+  wrap.classList.add('hide');
+  unlockBtn.style.display='block';
+};
+unlockBtn.onclick=()=>{
+  locked=false;
+  wrap.classList.remove('hide');
+  unlockBtn.style.display='none';
+  showUI();
+};
+
+/* Zoom (fit ↔ fill) */
+let fitMode=true;
+zoomBtn.onclick=()=>{
+  fitMode=!fitMode;
+  vid.style.objectFit=fitMode?'contain':'cover';
+  showUI();
+};
+
+/* Fullscreen Toggle */
+fsBtn.onclick=()=>{
+  if(!document.fullscreenElement){wrap.requestFullscreen().catch(()=>{});}
+  else{document.exitFullscreen?.();}
+  showUI();
+};
+
+/* Auto-hide Controls */
+let timer;
+function showUI(){if(locked)return;wrap.classList.remove('hide');clearTimeout(timer);timer=setTimeout(()=>wrap.classList.add('hide'),3000);}
+['mousemove','click','touchstart'].forEach(e=>wrap.addEventListener(e,showUI));
+showUI();
+
+/* Episodes / Next */
+episodesBtn.onclick=()=>alert("Episodes list open (to be linked)");
+nextBtn.onclick=()=>alert("Next Episode playing...");
+
+/* Back */
+document.getElementById('btnBack').onclick=()=>history.back();
+</script>
+</body>
+</html>vid.src=SRC;
 if(TYPE==="series"){episodesBtn.style.display="inline-flex";nextBtn.style.display="inline-flex";}
 
 /* Loader hide */
